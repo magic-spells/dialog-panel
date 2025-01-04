@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1.0" />
+		<title>Dialog Panel Demo</title>
+		<link rel="stylesheet" href="./dialog-panel.min.css" />
+		<style>
+			/* Demo-specific styles */
+			body {
+				font-family: Arial, sans-serif;
+				margin: 0;
+				padding: 0;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				height: 100vh;
+				background-color: #f9f9f9;
+			}
+			.trigger-button {
+				padding: 10px 20px;
+				background-color: #007bff;
+				color: #fff;
+				border: none;
+				cursor: pointer;
+				font-size: 16px;
+				border-radius: 4px;
+			}
+		</style>
+	</head>
+	<body>
+		<!-- Trigger Button -->
+		<button
+			class="trigger-button"
+			aria-haspopup="dialog"
+			aria-controls="demo-dialog"
+			aria-expanded="false">
+			Open Dialog
+		</button>
+
+		<!-- Dialog Panel Component -->
+		<dialog-panel
+			id="demo-dialog"
+			role="dialog"
+			aria-modal="true"
+			aria-labelledby="dialog-title"
+			aria-describedby="dialog-description"
+			class="p-gutter">
+			<dialog-content>
+				<button
+					aria-label="Close dialog"
+					class="close-button"
+					data-action="hide-dialog">
+					&times;
+				</button>
+				<div class="content">
+					<h2 id="dialog-title">Dialog Header</h2>
+					<p id="dialog-description">
+						This is a demonstration of the dialog panel component. You
+						can add your content here.
+					</p>
+					<div class="button-group">
+						<button data-action="hide-dialog" class="trigger-button">
+							Ok
+						</button>
+					</div>
+				</div>
+			</dialog-content>
+		</dialog-panel>
+
+		<script type="module" src="./dialog-panel.esm.js"></script>
+	</body>
+</html>
