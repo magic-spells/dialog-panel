@@ -265,6 +265,12 @@
 			_.#handleTransitionEnd = (e) => {
 				if (e.propertyName === 'opacity' && _.getAttribute('aria-hidden') === 'true') {
 					_.contentPanel.classList.add('hidden');
+					
+					// Dispatch afterHide event - dialog has completed its transition
+					_.dispatchEvent(new CustomEvent('afterHide', {
+						bubbles: true,
+						detail: { triggerElement: _.triggerEl }
+					}));
 				}
 			};
 
@@ -339,10 +345,25 @@
 		/**
 		 * Shows the dialog and traps focus within it
 		 * @param {HTMLElement} [triggerEl=null] - The element that triggered the dialog
+		 * @fires DialogPanel#beforeShow - Fired before the dialog starts to show
+		 * @fires DialogPanel#show - Fired when the dialog has been shown
+		 * @returns {boolean} False if the show was prevented by a beforeShow event handler
 		 */
 		show(triggerEl = null) {
 			const _ = this;
 			_.triggerEl = triggerEl || false;
+
+			// Dispatch beforeShow event - allows preventing the dialog from opening
+			const beforeShowEvent = new CustomEvent('beforeShow', {
+				bubbles: true,
+				cancelable: true,
+				detail: { triggerElement: _.triggerEl }
+			});
+			
+			const showAllowed = _.dispatchEvent(beforeShowEvent);
+			
+			// If event was canceled (preventDefault was called), don't show the dialog
+			if (!showAllowed) return false;
 
 			// Remove the hidden class first to ensure content is rendered
 			_.contentPanel.classList.remove('hidden');
@@ -367,14 +388,38 @@
 						firstFocusable.focus();
 					});
 				}
+				
+				// Dispatch show event - dialog is now visible
+				_.dispatchEvent(new CustomEvent('show', {
+					bubbles: true,
+					detail: { triggerElement: _.triggerEl }
+				}));
 			});
+			
+			return true;
 		}
 
 		/**
 		 * Hides the dialog and restores focus
+		 * @fires DialogPanel#beforeHide - Fired before the dialog starts to hide
+		 * @fires DialogPanel#hide - Fired when the dialog has started hiding (transition begins)
+		 * @fires DialogPanel#afterHide - Fired when the dialog has completed its hide transition
+		 * @returns {boolean} False if the hide was prevented by a beforeHide event handler
 		 */
 		hide() {
 			const _ = this;
+			
+			// Dispatch beforeHide event - allows preventing the dialog from closing
+			const beforeHideEvent = new CustomEvent('beforeHide', {
+				bubbles: true,
+				cancelable: true,
+				detail: { triggerElement: _.triggerEl }
+			});
+			
+			const hideAllowed = _.dispatchEvent(beforeHideEvent);
+			
+			// If event was canceled (preventDefault was called), don't hide the dialog
+			if (!hideAllowed) return false;
 			
 			// Restore body scroll and scroll position
 			_.#restoreScroll();
@@ -390,6 +435,14 @@
 			// Set aria-hidden to start transition
 			// The transitionend event handler will add display:none when complete
 			_.setAttribute('aria-hidden', 'true');
+			
+			// Dispatch hide event - dialog is now starting to hide
+			_.dispatchEvent(new CustomEvent('hide', {
+				bubbles: true,
+				detail: { triggerElement: _.triggerEl }
+			}));
+			
+			return true;
 		}
 	}
 

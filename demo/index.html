@@ -184,6 +184,44 @@
 			dialog-content .trigger-button {
 				margin-bottom: 0;
 			}
+			
+			/* Event log styling */
+			.event-log {
+				margin-top: 30px;
+				padding: 15px;
+				background-color: #f5f5f5;
+				border-radius: 8px;
+				box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+			}
+			
+			.event-log h3 {
+				margin-top: 0;
+				color: #333;
+				font-size: 1.2rem;
+			}
+			
+			.event-log ul {
+				margin: 0;
+				padding: 0;
+				list-style: none;
+			}
+			
+			.event-log li {
+				padding: 8px 12px;
+				margin-bottom: 8px;
+				background-color: #fff;
+				border-left: 4px solid #0077ff;
+				border-radius: 4px;
+				font-family: monospace;
+				font-size: 0.9rem;
+				box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+				transition: all 0.2s ease;
+			}
+			
+			.event-log li:last-child {
+				border-left-color: #ff6b6b;
+				font-weight: bold;
+			}
 		</style>
 	</head>
 	<body>
@@ -238,6 +276,104 @@
 			</dialog-content>
 		</dialog-panel>
 
-		<script type="module" src="./dialog-panel.esm.js"></script>
+		<script type="module">
+		// Import the dialog panel component
+		import './dialog-panel.esm.js';
+		
+		// Example of using events
+		const dialog = document.getElementById('demo-dialog');
+		const eventLog = document.createElement('div');
+		eventLog.classList.add('event-log');
+		eventLog.innerHTML = '<h3>Event Log:</h3><ul></ul>';
+		document.querySelector('.content-section').appendChild(eventLog);
+		
+		const logEvent = (eventName, detail) => {
+			const list = eventLog.querySelector('ul');
+			const item = document.createElement('li');
+			item.textContent = `${eventName} at ${new Date().toLocaleTimeString()}`;
+			if (detail && detail.triggerElement) {
+				item.textContent += ` (triggered by ${detail.triggerElement.tagName})`;
+			}
+			list.appendChild(item);
+			
+			// Limit to last 10 events
+			if (list.children.length > 10) {
+				list.removeChild(list.firstChild);
+			}
+		};
+		
+		// Listen for all dialog events
+		dialog.addEventListener('beforeShow', (e) => {
+			logEvent('beforeShow', e.detail);
+		});
+		
+		dialog.addEventListener('show', (e) => {
+			logEvent('show', e.detail);
+		});
+		
+		dialog.addEventListener('beforeHide', (e) => {
+			logEvent('beforeHide', e.detail);
+		});
+		
+		dialog.addEventListener('hide', (e) => {
+			logEvent('hide', e.detail);
+		});
+		
+		dialog.addEventListener('afterHide', (e) => {
+			logEvent('afterHide', e.detail);
+		});
+		
+		// Add confirmation button to demonstrate preventDefault
+		const confirmBtn = document.createElement('button');
+		confirmBtn.textContent = 'Open Dialog with Confirmation';
+		confirmBtn.className = 'trigger-button';
+		confirmBtn.style.backgroundColor = '#ff6b6b';
+		confirmBtn.style.marginLeft = '20px';
+		
+		document.querySelector('.content-section').appendChild(confirmBtn);
+		
+		confirmBtn.addEventListener('click', () => {
+			dialog.show(confirmBtn);
+		});
+		
+		// Create a temporary flag to demonstrate preventing dialog close
+		let preventCloseOnce = false;
+		const preventCloseBtn = document.createElement('button');
+		preventCloseBtn.textContent = 'Prevent Next Close';
+		preventCloseBtn.className = 'trigger-button';
+		preventCloseBtn.style.backgroundColor = '#ff9e5e';
+		
+		document.querySelector('.content-section').appendChild(preventCloseBtn);
+		
+		preventCloseBtn.addEventListener('click', () => {
+			preventCloseOnce = true;
+			alert('The next attempt to close the dialog will be prevented!');
+		});
+		
+		// Example of preventing dialog from closing
+		dialog.addEventListener('beforeHide', (e) => {
+			if (preventCloseOnce) {
+				e.preventDefault();
+				preventCloseOnce = false;
+				
+				// Show a message inside the dialog
+				const message = document.createElement('div');
+				message.className = 'prevention-message';
+				message.innerHTML = '<p>Close prevented! Try closing again.</p>';
+				message.style.padding = '10px';
+				message.style.margin = '10px 0';
+				message.style.backgroundColor = '#ffeeee';
+				message.style.borderRadius = '4px';
+				
+				const content = dialog.querySelector('.content');
+				content.appendChild(message);
+				
+				// Remove the message after 2 seconds
+				setTimeout(() => {
+					message.remove();
+				}, 2000);
+			}
+		});
+	</script>
 	</body>
 </html>

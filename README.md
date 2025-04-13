@@ -90,19 +90,19 @@ You can style the Dialog Panel by overriding the CSS custom properties:
 
 ```css
 :root {
-  /* Layout */
-  --dp-panel-z-index: 100;
-  
-  /* Overlay */
-  --dp-overlay-background: rgba(0, 0, 0, 0.7);
-  --dp-overlay-backdrop-filter: blur(5px) saturate(120%);
-  
-  /* Content */
-  --dp-content-background: #f8f8f8;
-  
-  /* Animation */
-  --dp-transition-duration: 400ms;
-  --dp-transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
+	/* Layout */
+	--dp-panel-z-index: 100;
+
+	/* Overlay */
+	--dp-overlay-background: rgba(0, 0, 0, 0.7);
+	--dp-overlay-backdrop-filter: blur(5px) saturate(120%);
+
+	/* Content */
+	--dp-content-background: #f8f8f8;
+
+	/* Animation */
+	--dp-transition-duration: 400ms;
+	--dp-transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
 }
 ```
 
@@ -116,16 +116,16 @@ For more advanced customization, you can import the SCSS directly:
 
 // Option 2: Import the SCSS and override variables
 @use '@magic-spells/dialog-panel/scss' with (
-  $overlay-background: rgba(0, 0, 0, 0.7),
-  $overlay-backdrop-filter: blur(5px) saturate(120%),
-  $content-background: #f8f8f8,
-  $transition-duration: 400ms,
-  $transition-timing: cubic-bezier(0.4, 0, 0.2, 1)
+	$overlay-background: rgba(0, 0, 0, 0.7),
+	$overlay-backdrop-filter: blur(5px) saturate(120%),
+	$content-background: #f8f8f8,
+	$transition-duration: 400ms,
+	$transition-timing: cubic-bezier(0.4, 0, 0.2, 1)
 );
 
 // Option 3: Import specific parts
 @use '@magic-spells/dialog-panel/scss/variables' with (
-  $panel-z-index: 100
+	$panel-z-index: 100
 );
 @use '@magic-spells/dialog-panel/scss/dialog-panel';
 ```
@@ -136,16 +136,11 @@ You can also style the elements directly:
 
 ```css
 dialog-panel {
-  /* Customize your dialog panel */
+	/* Customize your dialog panel */
 }
 
 dialog-overlay {
-  background-color: rgba(0, 0, 0, 0.5);
-}
-
-[data-action='hide-dialog'] {
-  font-size: 24px;
-  color: #333;
+	background-color: rgba(0, 0, 0, 0.5);
 }
 ```
 
@@ -153,8 +148,40 @@ dialog-overlay {
 
 #### Methods
 
-- `show()`: Opens the dialog panel
-- `hide()`: Closes the dialog panel
+- `show(triggerEl)`: Opens the dialog panel. Returns false if the action was prevented.
+- `hide()`: Closes the dialog panel. Returns false if the action was prevented.
+
+#### Events
+
+The dialog panel emits the following events that you can listen for:
+
+- `beforeShow`: Fired before the dialog starts to show. Cancelable - you can call `preventDefault()` to prevent the dialog from opening.
+- `show`: Fired when the dialog has been shown (after transitions).
+- `beforeHide`: Fired before the dialog starts to hide. Cancelable - you can call `preventDefault()` to prevent the dialog from closing.
+- `hide`: Fired when the dialog has started hiding (transition begins).
+- `afterHide`: Fired when the dialog has completed its hide transition.
+
+Each event provides a `detail` object with the `triggerElement` that initiated the action (if any).
+
+Example usage:
+
+```javascript
+const dialog = document.getElementById('my-dialog');
+
+// Prevent dialog from closing based on some condition
+dialog.addEventListener('beforeHide', (e) => {
+  if (someFormIsUnsaved) {
+    e.preventDefault(); // Prevents the dialog from closing
+    // Show a confirmation message instead
+  }
+});
+
+// Do something after the dialog is fully hidden
+dialog.addEventListener('afterHide', () => {
+  console.log('Dialog is now fully hidden');
+  // Clean up or reset form fields, etc.
+});
+```
 
 ## Browser Support
 
