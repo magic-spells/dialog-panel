@@ -196,6 +196,50 @@ customElements.define('focus-trap-end', FocusTrapEnd);
  * @extends HTMLElement
  */
 class DialogPanel extends HTMLElement {
+	#handleTransitionEnd;
+	#scrollPosition = 0;
+	
+	/**
+	 * Clean up event listeners when component is removed from DOM
+	 */
+	disconnectedCallback() {
+		const _ = this;
+		if (_.contentPanel) {
+			_.contentPanel.removeEventListener('transitionend', _.#handleTransitionEnd);
+		}
+		
+		// Ensure body scroll is restored if component is removed while open
+		document.body.classList.remove('overflow-hidden');
+		this.#restoreScroll();
+	}
+	
+	/**
+	 * Saves current scroll position and locks body scrolling
+	 * @private
+	 */
+	#lockScroll() {
+		const _ = this;
+		// Save current scroll position
+		_.#scrollPosition = window.pageYOffset;
+		
+		// Apply fixed position to body
+		document.body.classList.add('overflow-hidden');
+		document.body.style.top = `-${_.#scrollPosition}px`;
+	}
+	
+	/**
+	 * Restores scroll position when dialog is closed
+	 * @private
+	 */
+	#restoreScroll() {
+		const _ = this;
+		// Remove fixed positioning
+		document.body.classList.remove('overflow-hidden');
+		document.body.style.removeProperty('top');
+		
+		// Restore scroll position
+		window.scrollTo(0, _.#scrollPosition);
+	}
 	/**
 	 * Initializes the dialog panel, sets up focus trap and overlay
 	 */
@@ -210,6 +254,13 @@ class DialogPanel extends HTMLElement {
 		_.contentPanel = _.querySelector('dialog-content');
 		_.focusTrap = document.createElement('focus-trap');
 		_.triggerEl = null;
+		
+		// Create a handler for transition end events
+		_.#handleTransitionEnd = (e) => {
+			if (e.propertyName === 'opacity' && _.getAttribute('aria-hidden') === 'true') {
+				_.contentPanel.classList.add('hidden');
+			}
+		};
 
 		// Ensure we have labelledby and describedby references
 		if (!_.getAttribute('aria-labelledby')) {
@@ -241,10 +292,12 @@ class DialogPanel extends HTMLElement {
 	 * @private
 	 */
 	#bindUI() {
+		const _ = this;
+		
 		// Handle trigger buttons
 		document.addEventListener('click', (e) => {
 			const trigger = e.target.closest(
-				`[aria-controls="${this.id}"]`
+				`[aria-controls="${_.id}"]`
 			);
 			if (!trigger) return;
 
@@ -252,15 +305,17 @@ class DialogPanel extends HTMLElement {
 				e.preventDefault();
 			}
 
-			// this.triggerEl = trigger;
-			this.show(trigger);
+			_.show(trigger);
 		});
 
 		// Handle close buttons
-		this.addEventListener('click', (e) => {
+		_.addEventListener('click', (e) => {
 			if (!e.target.closest('[data-action="hide-dialog"]')) return;
-			this.hide();
+			_.hide();
 		});
+		
+		// Add transition end listener
+		_.contentPanel.addEventListener('transitionend', _.#handleTransitionEnd);
 	}
 
 	/**
@@ -280,48 +335,55 @@ class DialogPanel extends HTMLElement {
 	 * @param {HTMLElement} [triggerEl=null] - The element that triggered the dialog
 	 */
 	show(triggerEl = null) {
-		this.triggerEl = triggerEl || false;
+		const _ = this;
+		_.triggerEl = triggerEl || false;
 
-		// Update ARIA states
-		this.setAttribute('aria-hidden', 'false');
-		if (this.triggerEl) {
-			this.triggerEl.setAttribute('aria-expanded', 'true');
-		}
-
-		// prevent body from scrolling
-		document.body.classList.add('overflow-hidden');
-
-		// Focus management
-		const firstFocusable = this.querySelector(
-			'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-		);
-		if (firstFocusable) {
-			requestAnimationFrame(() => {
-				firstFocusable.focus();
-			});
-		}
+		// Remove the hidden class first to ensure content is rendered
+		_.contentPanel.classList.remove('hidden');
+		
+		// Give the browser a moment to process before starting animation
+		requestAnimationFrame(() => {
+			// Update ARIA states
+			_.setAttribute('aria-hidden', 'false');
+			if (_.triggerEl) {
+				_.triggerEl.setAttribute('aria-expanded', 'true');
+			}
+	
+			// Lock body scrolling and save scroll position
+			_.#lockScroll();
+	
+			// Focus management
+			const firstFocusable = _.querySelector(
+				'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+			);
+			if (firstFocusable) {
+				requestAnimationFrame(() => {
+					firstFocusable.focus();
+				});
+			}
+		});
 	}
 
 	/**
 	 * Hides the dialog and restores focus
 	 */
 	hide() {
-		// allow body to scroll
-		document.body.classList.remove('overflow-hidden');
+		const _ = this;
+		
+		// Restore body scroll and scroll position
+		_.#restoreScroll();
 
 		// Update ARIA states
-		if (this.triggerEl) {
-			this.triggerEl.setAttribute('aria-expanded', 'false');
-			// Restore focus to trigger element
-			this.triggerEl.focus();
-		} else {
-			console.log('we need to blur focus');
+		if (_.triggerEl) {
+			// remove focus from modal panel first
+			_.triggerEl.focus();
+			// mark trigger as no longer expanded
+			_.triggerEl.setAttribute('aria-expanded', 'false');
 		}
 
-		// hide dialog panel
-		setTimeout(() => {
-			this.setAttribute('aria-hidden', 'true');
-		}, 1);
+		// Set aria-hidden to start transition
+		// The transitionend event handler will add display:none when complete
+		_.setAttribute('aria-hidden', 'true');
 	}
 }
 

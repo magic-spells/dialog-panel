@@ -1,0 +1,73 @@
+// Import variables using the modern @use rule
+@use 'variables' as vars;
+
+dialog-panel {
+  /* Make it take no space and be invisible in the document flow */
+  display: contents;
+
+  &[aria-hidden='false'] {
+    dialog-overlay,
+    dialog-content {
+      pointer-events: auto;
+      opacity: 1;
+      transform: scale(1);
+      filter: blur(0px);
+    }
+  }
+}
+
+/* Overlay background */
+dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  opacity: 0;
+  pointer-events: none;
+  z-index: var(--dp-overlay-z-index, 1000);
+  transition: var(--dp-overlay-transition, all 300ms ease-out);
+  background-color: var(
+    --dp-overlay-background,
+    rgba(20, 23, 26, 0.4)
+  );
+  backdrop-filter: var(
+    --dp-overlay-backdrop-filter,
+    blur(2px) saturate(120%)
+  );
+}
+
+dialog-content {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.95);
+  max-width: 90vw;
+  max-height: 85vh;
+  display: var(--dp-content-display, block);
+  opacity: 0;
+  background: var(--dp-content-background, white);
+  pointer-events: none;
+  z-index: var(--dp-content-z-index, 1001);
+  box-shadow: var(
+    --dp-content-shadow,
+    0 10px 25px rgba(0, 0, 0, 0.15)
+  );
+  border-radius: var(--dp-content-border-radius, 8px);
+  overflow: auto;
+  transition:
+    opacity var(--dp-transition-duration, 300ms)
+      var(--dp-transition-timing, ease-out),
+    transform var(--dp-transition-duration, 300ms)
+      var(--dp-transition-timing, ease-out);
+
+  /* When shown, reset transform to center */
+  dialog-panel[aria-hidden='false'] & {
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  /* When explicitly hidden, remove from layout */
+  &.hidden {
+    display: none;
+  }
+}

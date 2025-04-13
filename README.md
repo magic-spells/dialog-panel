@@ -2,6 +2,8 @@
 
 A lightweight, customizable Web Component for creating accessible modal dialogs. Ideal for dialogs, alerts, cart panels, or content panels with smooth animations and accessibility features.
 
+[**Live Demo**](https://magic-spells.github.io/dialog-panel/demo/)
+
 ## Features
 
 - No dependencies
@@ -82,20 +84,68 @@ Or include directly in your HTML:
 
 ### Styling
 
-You can style the Dialog Panel by overriding or extending the provided CSS:
+#### Using CSS Custom Properties
+
+You can style the Dialog Panel by overriding the CSS custom properties:
+
+```css
+:root {
+  /* Layout */
+  --dp-panel-z-index: 100;
+  
+  /* Overlay */
+  --dp-overlay-background: rgba(0, 0, 0, 0.7);
+  --dp-overlay-backdrop-filter: blur(5px) saturate(120%);
+  
+  /* Content */
+  --dp-content-background: #f8f8f8;
+  
+  /* Animation */
+  --dp-transition-duration: 400ms;
+  --dp-transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
+}
+```
+
+#### Using SCSS
+
+For more advanced customization, you can import the SCSS directly:
+
+```scss
+// Option 1: Import the compiled CSS
+@import '@magic-spells/dialog-panel/css';
+
+// Option 2: Import the SCSS and override variables
+@use '@magic-spells/dialog-panel/scss' with (
+  $overlay-background: rgba(0, 0, 0, 0.7),
+  $overlay-backdrop-filter: blur(5px) saturate(120%),
+  $content-background: #f8f8f8,
+  $transition-duration: 400ms,
+  $transition-timing: cubic-bezier(0.4, 0, 0.2, 1)
+);
+
+// Option 3: Import specific parts
+@use '@magic-spells/dialog-panel/scss/variables' with (
+  $panel-z-index: 100
+);
+@use '@magic-spells/dialog-panel/scss/dialog-panel';
+```
+
+#### Direct Element Styling
+
+You can also style the elements directly:
 
 ```css
 dialog-panel {
-	/* Customize your dialog panel */
+  /* Customize your dialog panel */
 }
 
 dialog-overlay {
-	background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.5);
 }
 
 [data-action='hide-dialog'] {
-	font-size: 24px;
-	color: #333;
+  font-size: 24px;
+  color: #333;
 }
 ```
 

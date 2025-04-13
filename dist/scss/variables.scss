@@ -1,0 +1,54 @@
+// Dialog Panel variables
+// SCSS variables for internal component use and customization
+// These variables can be customized by the user
+
+// Layout
+$panel-top: 0 !default;
+$panel-left: 0 !default;
+$panel-width: 100vw !default;
+$panel-height: 100vh !default;
+$panel-z-index: 10 !default;
+
+// Overlay
+$overlay-z-index: 1000 !default;
+$overlay-background: rgba(20, 23, 26, 0.4) !default;
+$overlay-backdrop-filter: blur(2px) saturate(120%) !default;
+$overlay-transition: all 400ms ease-out !default;
+
+// Content
+$content-display: block !default;
+$content-background: white !default;
+$content-z-index: 1001 !default;
+$content-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !default;
+$content-border-radius: 8px !default;
+
+// Animation
+$transition-duration: 400ms !default;
+$transition-timing: ease-out !default;
+
+// Define CSS Custom Properties using SCSS values
+:root {
+  // Layout
+  --dp-panel-top: #{$panel-top};
+  --dp-panel-left: #{$panel-left};
+  --dp-panel-width: #{$panel-width};
+  --dp-panel-height: #{$panel-height};
+  --dp-panel-z-index: #{$panel-z-index};
+
+  // Overlay
+  --dp-overlay-z-index: #{$overlay-z-index};
+  --dp-overlay-background: #{$overlay-background};
+  --dp-overlay-backdrop-filter: #{$overlay-backdrop-filter};
+  --dp-overlay-transition: #{$overlay-transition};
+
+  // Content
+  --dp-content-display: #{$content-display};
+  --dp-content-background: #{$content-background};
+  --dp-content-z-index: #{$content-z-index};
+  --dp-content-shadow: #{$content-shadow};
+  --dp-content-border-radius: #{$content-border-radius};
+
+  // Animation
+  --dp-transition-duration: #{$transition-duration};
+  --dp-transition-timing: #{$transition-timing};
+}

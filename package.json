@@ -1,6 +1,6 @@
 {
   "name": "@magic-spells/dialog-panel",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A lightweight, customizable Dialog Panel web component for creating accessible and responsive modal dialogs.",
   "author": "Cory Schulz",
   "license": "MIT",
@@ -9,13 +9,17 @@
   "module": "dist/dialog-panel.esm.js",
   "unpkg": "dist/dialog-panel.min.js",
   "style": "dist/dialog-panel.min.css",
+  "sass": "dist/dialog-panel.scss",
   "exports": {
     ".": {
       "import": "./dist/dialog-panel.esm.js",
       "require": "./dist/dialog-panel.cjs.js",
       "default": "./dist/dialog-panel.esm.js"
     },
-    "./style.css": "./dist/dialog-panel.min.css"
+    "./css": "./dist/dialog-panel.css",
+    "./css/min": "./dist/dialog-panel.min.css",
+    "./scss": "./dist/dialog-panel.scss",
+    "./scss/*": "./dist/scss/*"
   },
   "sideEffects": true,
   "repository": {
@@ -46,7 +50,8 @@
     "lint": "eslint src/ rollup.config.mjs",
     "format": "prettier --write .",
     "prepublishOnly": "npm run build",
-    "serve": "rollup -c --watch"
+    "serve": "rollup -c --watch",
+    "dev": "rollup -c --watch"
   },
   "publishConfig": {
     "access": "public",
@@ -67,7 +72,8 @@
     "rollup": "^3.0.0",
     "rollup-plugin-copy": "^3.5.0",
     "rollup-plugin-postcss": "^4.0.2",
-    "rollup-plugin-serve": "^1.1.1"
+    "rollup-plugin-serve": "^1.1.1",
+    "sass": "^1.86.3"
   },
   "dependencies": {
     "@magic-spells/focus-trap": "^1.0.6"
