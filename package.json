@@ -1,6 +1,6 @@
 {
   "name": "@magic-spells/dialog-panel",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "A lightweight, customizable Dialog Panel web component for creating accessible and responsive modal dialogs.",
   "author": "Cory Schulz",
   "license": "MIT",
