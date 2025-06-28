@@ -2,198 +2,7 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-/**
- * Retrieves all focusable elements within a given container.
- *
- * @param {HTMLElement} container - The container element to search for focusable elements.
- * @returns {HTMLElement[]} An array of focusable elements found within the container.
- */
-const getFocusableElements = (container) => {
-	const focusableSelectors =
-		'summary, a[href], button:not(:disabled), [tabindex]:not([tabindex^="-"]):not(focus-trap-start):not(focus-trap-end), [draggable], area, input:not([type=hidden]):not(:disabled), select:not(:disabled), textarea:not(:disabled), object, iframe';
-	return Array.from(container.querySelectorAll(focusableSelectors));
-};
-
-class FocusTrap extends HTMLElement {
-	/** @type {boolean} Indicates whether the styles have been injected into the DOM. */
-	static styleInjected = false;
-
-	constructor() {
-		super();
-		this.trapStart = null;
-		this.trapEnd = null;
-
-		// Inject styles only once, when the first FocusTrap instance is created.
-		if (!FocusTrap.styleInjected) {
-			this.injectStyles();
-			FocusTrap.styleInjected = true;
-		}
-	}
-
-	/**
-	 * Injects necessary styles for the focus trap into the document's head.
-	 * This ensures that focus-trap-start and focus-trap-end elements are hidden.
-	 */
-	injectStyles() {
-		const style = document.createElement('style');
-		style.textContent = `
-      focus-trap-start,
-      focus-trap-end {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        margin: -1px;
-        padding: 0;
-        border: 0;
-        clip: rect(0, 0, 0, 0);
-        overflow: hidden;
-        white-space: nowrap;
-      }
-    `;
-		document.head.appendChild(style);
-	}
-
-	/**
-	 * Called when the element is connected to the DOM.
-	 * Sets up the focus trap and adds the keydown event listener.
-	 */
-	connectedCallback() {
-		this.setupTrap();
-		this.addEventListener('keydown', this.handleKeyDown);
-	}
-
-	/**
-	 * Called when the element is disconnected from the DOM.
-	 * Removes the keydown event listener.
-	 */
-	disconnectedCallback() {
-		this.removeEventListener('keydown', this.handleKeyDown);
-	}
-
-	/**
-	 * Sets up the focus trap by adding trap start and trap end elements.
-	 * Focuses the trap start element to initiate the focus trap.
-	 */
-	setupTrap() {
-		// check to see it there are any focusable children
-		const focusableElements = getFocusableElements(this);
-		// exit if there aren't any
-		if (focusableElements.length === 0) return;
-
-		// create trap start and end elements
-		this.trapStart = document.createElement('focus-trap-start');
-		this.trapEnd = document.createElement('focus-trap-end');
-
-		// add to DOM
-		this.prepend(this.trapStart);
-		this.append(this.trapEnd);
-	}
-
-	/**
-	 * Handles the keydown event. If the Escape key is pressed, the focus trap is exited.
-	 *
-	 * @param {KeyboardEvent} e - The keyboard event object.
-	 */
-	handleKeyDown = (e) => {
-		if (e.key === 'Escape') {
-			e.preventDefault();
-			this.exitTrap();
-		}
-	};
-
-	/**
-	 * Exits the focus trap by hiding the current container and shifting focus
-	 * back to the trigger element that opened the trap.
-	 */
-	exitTrap() {
-		const container = this.closest('[aria-hidden="false"]');
-		if (!container) return;
-
-		container.setAttribute('aria-hidden', 'true');
-
-		const trigger = document.querySelector(
-			`[aria-expanded="true"][aria-controls="${container.id}"]`
-		);
-		if (trigger) {
-			trigger.setAttribute('aria-expanded', 'false');
-			trigger.focus();
-		}
-	}
-}
-
-class FocusTrapStart extends HTMLElement {
-	/**
-	 * Called when the element is connected to the DOM.
-	 * Sets the tabindex and adds the focus event listener.
-	 */
-	connectedCallback() {
-		this.setAttribute('tabindex', '0');
-		this.addEventListener('focus', this.handleFocus);
-	}
-
-	/**
-	 * Called when the element is disconnected from the DOM.
-	 * Removes the focus event listener.
-	 */
-	disconnectedCallback() {
-		this.removeEventListener('focus', this.handleFocus);
-	}
-
-	/**
-	 * Handles the focus event. If focus moves backwards from the first focusable element,
-	 * it is cycled to the last focusable element, and vice versa.
-	 *
-	 * @param {FocusEvent} e - The focus event object.
-	 */
-	handleFocus = (e) => {
-		const trap = this.closest('focus-trap');
-		const focusableElements = getFocusableElements(trap);
-
-		if (focusableElements.length === 0) return;
-
-		const firstElement = focusableElements[0];
-		const lastElement =
-			focusableElements[focusableElements.length - 1];
-
-		if (e.relatedTarget === firstElement) {
-			lastElement.focus();
-		} else {
-			firstElement.focus();
-		}
-	};
-}
-
-class FocusTrapEnd extends HTMLElement {
-	/**
-	 * Called when the element is connected to the DOM.
-	 * Sets the tabindex and adds the focus event listener.
-	 */
-	connectedCallback() {
-		this.setAttribute('tabindex', '0');
-		this.addEventListener('focus', this.handleFocus);
-	}
-
-	/**
-	 * Called when the element is disconnected from the DOM.
-	 * Removes the focus event listener.
-	 */
-	disconnectedCallback() {
-		this.removeEventListener('focus', this.handleFocus);
-	}
-
-	/**
-	 * Handles the focus event. When the trap end is focused, focus is shifted back to the trap start.
-	 */
-	handleFocus = () => {
-		const trap = this.closest('focus-trap');
-		const trapStart = trap.querySelector('focus-trap-start');
-		trapStart.focus();
-	};
-}
-
-customElements.define('focus-trap', FocusTrap);
-customElements.define('focus-trap-start', FocusTrapStart);
-customElements.define('focus-trap-end', FocusTrapEnd);
+require('@magic-spells/focus-trap');
 
 /**
  * Custom element that creates an accessible modal dialog panel with focus management
@@ -202,21 +11,24 @@ customElements.define('focus-trap-end', FocusTrapEnd);
 class DialogPanel extends HTMLElement {
 	#handleTransitionEnd;
 	#scrollPosition = 0;
-	
+
 	/**
 	 * Clean up event listeners when component is removed from DOM
 	 */
 	disconnectedCallback() {
 		const _ = this;
 		if (_.contentPanel) {
-			_.contentPanel.removeEventListener('transitionend', _.#handleTransitionEnd);
+			_.contentPanel.removeEventListener(
+				'transitionend',
+				_.#handleTransitionEnd
+			);
 		}
-		
+
 		// Ensure body scroll is restored if component is removed while open
 		document.body.classList.remove('overflow-hidden');
 		this.#restoreScroll();
 	}
-	
+
 	/**
 	 * Saves current scroll position and locks body scrolling
 	 * @private
@@ -225,12 +37,12 @@ class DialogPanel extends HTMLElement {
 		const _ = this;
 		// Save current scroll position
 		_.#scrollPosition = window.pageYOffset;
-		
+
 		// Apply fixed position to body
 		document.body.classList.add('overflow-hidden');
 		document.body.style.top = `-${_.#scrollPosition}px`;
 	}
-	
+
 	/**
 	 * Restores scroll position when dialog is closed
 	 * @private
@@ -240,7 +52,7 @@ class DialogPanel extends HTMLElement {
 		// Remove fixed positioning
 		document.body.classList.remove('overflow-hidden');
 		document.body.style.removeProperty('top');
-		
+
 		// Restore scroll position
 		window.scrollTo(0, _.#scrollPosition);
 	}
@@ -258,17 +70,22 @@ class DialogPanel extends HTMLElement {
 		_.contentPanel = _.querySelector('dialog-content');
 		_.focusTrap = document.createElement('focus-trap');
 		_.triggerEl = null;
-		
+
 		// Create a handler for transition end events
 		_.#handleTransitionEnd = (e) => {
-			if (e.propertyName === 'opacity' && _.getAttribute('aria-hidden') === 'true') {
+			if (
+				e.propertyName === 'opacity' &&
+				_.getAttribute('aria-hidden') === 'true'
+			) {
 				_.contentPanel.classList.add('hidden');
-				
+
 				// Dispatch afterHide event - dialog has completed its transition
-				_.dispatchEvent(new CustomEvent('afterHide', {
-					bubbles: true,
-					detail: { triggerElement: _.triggerEl }
-				}));
+				_.dispatchEvent(
+					new CustomEvent('afterHide', {
+						bubbles: true,
+						detail: { triggerElement: _.triggerEl },
+					})
+				);
 			}
 		};
 
@@ -303,12 +120,10 @@ class DialogPanel extends HTMLElement {
 	 */
 	#bindUI() {
 		const _ = this;
-		
+
 		// Handle trigger buttons
 		document.addEventListener('click', (e) => {
-			const trigger = e.target.closest(
-				`[aria-controls="${_.id}"]`
-			);
+			const trigger = e.target.closest(`[aria-controls="${_.id}"]`);
 			if (!trigger) return;
 
 			if (trigger.getAttribute('data-prevent-default') === 'true') {
@@ -323,9 +138,12 @@ class DialogPanel extends HTMLElement {
 			if (!e.target.closest('[data-action="hide-dialog"]')) return;
 			_.hide();
 		});
-		
+
 		// Add transition end listener
-		_.contentPanel.addEventListener('transitionend', _.#handleTransitionEnd);
+		_.contentPanel.addEventListener(
+			'transitionend',
+			_.#handleTransitionEnd
+		);
 	}
 
 	/**
@@ -355,17 +173,17 @@ class DialogPanel extends HTMLElement {
 		const beforeShowEvent = new CustomEvent('beforeShow', {
 			bubbles: true,
 			cancelable: true,
-			detail: { triggerElement: _.triggerEl }
+			detail: { triggerElement: _.triggerEl },
 		});
-		
+
 		const showAllowed = _.dispatchEvent(beforeShowEvent);
-		
+
 		// If event was canceled (preventDefault was called), don't show the dialog
 		if (!showAllowed) return false;
 
 		// Remove the hidden class first to ensure content is rendered
 		_.contentPanel.classList.remove('hidden');
-		
+
 		// Give the browser a moment to process before starting animation
 		requestAnimationFrame(() => {
 			// Update ARIA states
@@ -373,10 +191,10 @@ class DialogPanel extends HTMLElement {
 			if (_.triggerEl) {
 				_.triggerEl.setAttribute('aria-expanded', 'true');
 			}
-	
+
 			// Lock body scrolling and save scroll position
 			_.#lockScroll();
-	
+
 			// Focus management
 			const firstFocusable = _.querySelector(
 				'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
@@ -386,14 +204,16 @@ class DialogPanel extends HTMLElement {
 					firstFocusable.focus();
 				});
 			}
-			
+
 			// Dispatch show event - dialog is now visible
-			_.dispatchEvent(new CustomEvent('show', {
-				bubbles: true,
-				detail: { triggerElement: _.triggerEl }
-			}));
+			_.dispatchEvent(
+				new CustomEvent('show', {
+					bubbles: true,
+					detail: { triggerElement: _.triggerEl },
+				})
+			);
 		});
-		
+
 		return true;
 	}
 
@@ -406,19 +226,19 @@ class DialogPanel extends HTMLElement {
 	 */
 	hide() {
 		const _ = this;
-		
+
 		// Dispatch beforeHide event - allows preventing the dialog from closing
 		const beforeHideEvent = new CustomEvent('beforeHide', {
 			bubbles: true,
 			cancelable: true,
-			detail: { triggerElement: _.triggerEl }
+			detail: { triggerElement: _.triggerEl },
 		});
-		
+
 		const hideAllowed = _.dispatchEvent(beforeHideEvent);
-		
+
 		// If event was canceled (preventDefault was called), don't hide the dialog
 		if (!hideAllowed) return false;
-		
+
 		// Restore body scroll and scroll position
 		_.#restoreScroll();
 
@@ -433,13 +253,15 @@ class DialogPanel extends HTMLElement {
 		// Set aria-hidden to start transition
 		// The transitionend event handler will add display:none when complete
 		_.setAttribute('aria-hidden', 'true');
-		
+
 		// Dispatch hide event - dialog is now starting to hide
-		_.dispatchEvent(new CustomEvent('hide', {
-			bubbles: true,
-			detail: { triggerElement: _.triggerEl }
-		}));
-		
+		_.dispatchEvent(
+			new CustomEvent('hide', {
+				bubbles: true,
+				detail: { triggerElement: _.triggerEl },
+			})
+		);
+
 		return true;
 	}
 }
@@ -475,9 +297,15 @@ class DialogContent extends HTMLElement {
 	}
 }
 
-customElements.define('dialog-panel', DialogPanel);
-customElements.define('dialog-overlay', DialogOverlay);
-customElements.define('dialog-content', DialogContent);
+if (!customElements.get('dialog-panel')) {
+	customElements.define('dialog-panel', DialogPanel);
+}
+if (!customElements.get('dialog-overlay')) {
+	customElements.define('dialog-overlay', DialogOverlay);
+}
+if (!customElements.get('dialog-content')) {
+	customElements.define('dialog-content', DialogContent);
+}
 
 exports.DialogContent = DialogContent;
 exports.DialogOverlay = DialogOverlay;

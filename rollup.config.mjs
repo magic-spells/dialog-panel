@@ -7,6 +7,9 @@ import postcss from 'rollup-plugin-postcss';
 const dev = process.env.ROLLUP_WATCH;
 const name = 'dialog-panel';
 
+// External dependencies that should not be bundled
+const external = ['@magic-spells/focus-trap'];
+
 // Shared CSS/SCSS plugin config
 const cssPlugin = postcss({
   extract: `${name}.css`,
@@ -37,6 +40,7 @@ export default [
   // ESM build
   {
     input: 'src/dialog-panel.js',
+    external,
     output: {
       file: `dist/${name}.esm.js`,
       format: 'es',
@@ -51,6 +55,7 @@ export default [
   // CommonJS build
   {
     input: 'src/dialog-panel.js',
+    external,
     output: {
       file: `dist/${name}.cjs.js`,
       format: 'cjs',
@@ -59,7 +64,7 @@ export default [
     },
     plugins: [resolve(), cssPlugin],
   },
-  // UMD build
+  // UMD build (includes all dependencies for standalone use)
   {
     input: 'src/dialog-panel.js',
     output: {

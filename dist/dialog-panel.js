@@ -204,21 +204,24 @@
 	class DialogPanel extends HTMLElement {
 		#handleTransitionEnd;
 		#scrollPosition = 0;
-		
+
 		/**
 		 * Clean up event listeners when component is removed from DOM
 		 */
 		disconnectedCallback() {
 			const _ = this;
 			if (_.contentPanel) {
-				_.contentPanel.removeEventListener('transitionend', _.#handleTransitionEnd);
+				_.contentPanel.removeEventListener(
+					'transitionend',
+					_.#handleTransitionEnd
+				);
 			}
-			
+
 			// Ensure body scroll is restored if component is removed while open
 			document.body.classList.remove('overflow-hidden');
 			this.#restoreScroll();
 		}
-		
+
 		/**
 		 * Saves current scroll position and locks body scrolling
 		 * @private
@@ -227,12 +230,12 @@
 			const _ = this;
 			// Save current scroll position
 			_.#scrollPosition = window.pageYOffset;
-			
+
 			// Apply fixed position to body
 			document.body.classList.add('overflow-hidden');
 			document.body.style.top = `-${_.#scrollPosition}px`;
 		}
-		
+
 		/**
 		 * Restores scroll position when dialog is closed
 		 * @private
@@ -242,7 +245,7 @@
 			// Remove fixed positioning
 			document.body.classList.remove('overflow-hidden');
 			document.body.style.removeProperty('top');
-			
+
 			// Restore scroll position
 			window.scrollTo(0, _.#scrollPosition);
 		}
@@ -260,17 +263,22 @@
 			_.contentPanel = _.querySelector('dialog-content');
 			_.focusTrap = document.createElement('focus-trap');
 			_.triggerEl = null;
-			
+
 			// Create a handler for transition end events
 			_.#handleTransitionEnd = (e) => {
-				if (e.propertyName === 'opacity' && _.getAttribute('aria-hidden') === 'true') {
+				if (
+					e.propertyName === 'opacity' &&
+					_.getAttribute('aria-hidden') === 'true'
+				) {
 					_.contentPanel.classList.add('hidden');
-					
+
 					// Dispatch afterHide event - dialog has completed its transition
-					_.dispatchEvent(new CustomEvent('afterHide', {
-						bubbles: true,
-						detail: { triggerElement: _.triggerEl }
-					}));
+					_.dispatchEvent(
+						new CustomEvent('afterHide', {
+							bubbles: true,
+							detail: { triggerElement: _.triggerEl },
+						})
+					);
 				}
 			};
 
@@ -305,12 +313,10 @@
 		 */
 		#bindUI() {
 			const _ = this;
-			
+
 			// Handle trigger buttons
 			document.addEventListener('click', (e) => {
-				const trigger = e.target.closest(
-					`[aria-controls="${_.id}"]`
-				);
+				const trigger = e.target.closest(`[aria-controls="${_.id}"]`);
 				if (!trigger) return;
 
 				if (trigger.getAttribute('data-prevent-default') === 'true') {
@@ -325,9 +331,12 @@
 				if (!e.target.closest('[data-action="hide-dialog"]')) return;
 				_.hide();
 			});
-			
+
 			// Add transition end listener
-			_.contentPanel.addEventListener('transitionend', _.#handleTransitionEnd);
+			_.contentPanel.addEventListener(
+				'transitionend',
+				_.#handleTransitionEnd
+			);
 		}
 
 		/**
@@ -357,17 +366,17 @@
 			const beforeShowEvent = new CustomEvent('beforeShow', {
 				bubbles: true,
 				cancelable: true,
-				detail: { triggerElement: _.triggerEl }
+				detail: { triggerElement: _.triggerEl },
 			});
-			
+
 			const showAllowed = _.dispatchEvent(beforeShowEvent);
-			
+
 			// If event was canceled (preventDefault was called), don't show the dialog
 			if (!showAllowed) return false;
 
 			// Remove the hidden class first to ensure content is rendered
 			_.contentPanel.classList.remove('hidden');
-			
+
 			// Give the browser a moment to process before starting animation
 			requestAnimationFrame(() => {
 				// Update ARIA states
@@ -375,10 +384,10 @@
 				if (_.triggerEl) {
 					_.triggerEl.setAttribute('aria-expanded', 'true');
 				}
-		
+
 				// Lock body scrolling and save scroll position
 				_.#lockScroll();
-		
+
 				// Focus management
 				const firstFocusable = _.querySelector(
 					'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
@@ -388,14 +397,16 @@
 						firstFocusable.focus();
 					});
 				}
-				
+
 				// Dispatch show event - dialog is now visible
-				_.dispatchEvent(new CustomEvent('show', {
-					bubbles: true,
-					detail: { triggerElement: _.triggerEl }
-				}));
+				_.dispatchEvent(
+					new CustomEvent('show', {
+						bubbles: true,
+						detail: { triggerElement: _.triggerEl },
+					})
+				);
 			});
-			
+
 			return true;
 		}
 
@@ -408,19 +419,19 @@
 		 */
 		hide() {
 			const _ = this;
-			
+
 			// Dispatch beforeHide event - allows preventing the dialog from closing
 			const beforeHideEvent = new CustomEvent('beforeHide', {
 				bubbles: true,
 				cancelable: true,
-				detail: { triggerElement: _.triggerEl }
+				detail: { triggerElement: _.triggerEl },
 			});
-			
+
 			const hideAllowed = _.dispatchEvent(beforeHideEvent);
-			
+
 			// If event was canceled (preventDefault was called), don't hide the dialog
 			if (!hideAllowed) return false;
-			
+
 			// Restore body scroll and scroll position
 			_.#restoreScroll();
 
@@ -435,13 +446,15 @@
 			// Set aria-hidden to start transition
 			// The transitionend event handler will add display:none when complete
 			_.setAttribute('aria-hidden', 'true');
-			
+
 			// Dispatch hide event - dialog is now starting to hide
-			_.dispatchEvent(new CustomEvent('hide', {
-				bubbles: true,
-				detail: { triggerElement: _.triggerEl }
-			}));
-			
+			_.dispatchEvent(
+				new CustomEvent('hide', {
+					bubbles: true,
+					detail: { triggerElement: _.triggerEl },
+				})
+			);
+
 			return true;
 		}
 	}
@@ -477,9 +490,15 @@
 		}
 	}
 
-	customElements.define('dialog-panel', DialogPanel);
-	customElements.define('dialog-overlay', DialogOverlay);
-	customElements.define('dialog-content', DialogContent);
+	if (!customElements.get('dialog-panel')) {
+		customElements.define('dialog-panel', DialogPanel);
+	}
+	if (!customElements.get('dialog-overlay')) {
+		customElements.define('dialog-overlay', DialogOverlay);
+	}
+	if (!customElements.get('dialog-content')) {
+		customElements.define('dialog-content', DialogContent);
+	}
 
 	exports.DialogContent = DialogContent;
 	exports.DialogOverlay = DialogOverlay;
