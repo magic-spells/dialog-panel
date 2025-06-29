@@ -1,81 +1,81 @@
 {
-	"name": "@magic-spells/dialog-panel",
-	"version": "0.2.2",
-	"description": "A lightweight, customizable Dialog Panel web component for creating accessible and responsive modal dialogs.",
-	"author": "Cory Schulz",
-	"license": "MIT",
-	"type": "module",
-	"main": "dist/dialog-panel.cjs.js",
-	"module": "dist/dialog-panel.esm.js",
-	"unpkg": "dist/dialog-panel.min.js",
-	"style": "dist/dialog-panel.min.css",
-	"sass": "dist/dialog-panel.scss",
-	"exports": {
-		".": {
-			"import": "./dist/dialog-panel.esm.js",
-			"require": "./dist/dialog-panel.cjs.js",
-			"default": "./dist/dialog-panel.esm.js"
-		},
-		"./css": "./dist/dialog-panel.css",
-		"./css/min": "./dist/dialog-panel.min.css",
-		"./scss": "./dist/dialog-panel.scss",
-		"./scss/*": "./dist/scss/*"
-	},
-	"sideEffects": true,
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/magic-spells/dialog-panel.git"
-	},
-	"homepage": "https://github.com/magic-spells/dialog-panel#readme",
-	"bugs": {
-		"url": "https://github.com/magic-spells/dialog-panel/issues"
-	},
-	"keywords": [
-		"dialog-panel",
-		"modal-dialog",
-		"web-components",
-		"accessibility",
-		"a11y",
-		"keyboard-navigation",
-		"custom-elements",
-		"modal",
-		"dialog"
-	],
-	"files": [
-		"dist/",
-		"src/"
-	],
-	"scripts": {
-		"build": "rollup -c",
-		"lint": "eslint src/ rollup.config.mjs",
-		"format": "prettier --write .",
-		"prepublishOnly": "npm run build",
-		"serve": "rollup -c --watch",
-		"dev": "rollup -c --watch"
-	},
-	"publishConfig": {
-		"access": "public",
-		"registry": "https://registry.npmjs.org/"
-	},
-	"browserslist": [
-		"last 2 versions",
-		"not dead",
-		"not ie <= 11"
-	],
-	"devDependencies": {
-		"@eslint/js": "^8.57.0",
-		"@rollup/plugin-node-resolve": "^15.2.3",
-		"@rollup/plugin-terser": "^0.4.4",
-		"eslint": "^8.0.0",
-		"globals": "^13.24.0",
-		"prettier": "^3.3.3",
-		"rollup": "^3.0.0",
-		"rollup-plugin-copy": "^3.5.0",
-		"rollup-plugin-postcss": "^4.0.2",
-		"rollup-plugin-serve": "^1.1.1",
-		"sass": "^1.86.3"
-	},
-	"dependencies": {
-		"@magic-spells/focus-trap": "^1.0.7"
-	}
+  "name": "@magic-spells/dialog-panel",
+  "version": "0.2.3",
+  "description": "A lightweight, customizable Dialog Panel web component for creating accessible and responsive modal dialogs.",
+  "author": "Cory Schulz",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/dialog-panel.cjs.js",
+  "module": "dist/dialog-panel.esm.js",
+  "unpkg": "dist/dialog-panel.min.js",
+  "style": "dist/dialog-panel.min.css",
+  "sass": "dist/dialog-panel.scss",
+  "exports": {
+    ".": {
+      "import": "./dist/dialog-panel.esm.js",
+      "require": "./dist/dialog-panel.cjs.js",
+      "default": "./dist/dialog-panel.esm.js"
+    },
+    "./css": "./dist/dialog-panel.css",
+    "./css/min": "./dist/dialog-panel.min.css",
+    "./scss": "./dist/dialog-panel.scss",
+    "./scss/*": "./dist/scss/*"
+  },
+  "sideEffects": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/magic-spells/dialog-panel.git"
+  },
+  "homepage": "https://github.com/magic-spells/dialog-panel#readme",
+  "bugs": {
+    "url": "https://github.com/magic-spells/dialog-panel/issues"
+  },
+  "keywords": [
+    "dialog-panel",
+    "modal-dialog",
+    "web-components",
+    "accessibility",
+    "a11y",
+    "keyboard-navigation",
+    "custom-elements",
+    "modal",
+    "dialog"
+  ],
+  "files": [
+    "dist/",
+    "src/"
+  ],
+  "scripts": {
+    "build": "rollup -c",
+    "lint": "eslint src/ rollup.config.mjs",
+    "format": "prettier --write .",
+    "prepublishOnly": "npm run build",
+    "serve": "rollup -c --watch",
+    "dev": "rollup -c --watch"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "browserslist": [
+    "last 2 versions",
+    "not dead",
+    "not ie <= 11"
+  ],
+  "devDependencies": {
+    "@eslint/js": "^8.57.0",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-terser": "^0.4.4",
+    "eslint": "^8.0.0",
+    "globals": "^13.24.0",
+    "prettier": "^3.3.3",
+    "rollup": "^3.0.0",
+    "rollup-plugin-copy": "^3.5.0",
+    "rollup-plugin-postcss": "^4.0.2",
+    "rollup-plugin-serve": "^1.1.1",
+    "sass": "^1.86.3"
+  },
+  "dependencies": {
+    "@magic-spells/focus-trap": "^1.0.7"
+  }
 }
