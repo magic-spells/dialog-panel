@@ -28,27 +28,27 @@ $transition-timing: ease-out !default;
 
 // Define CSS Custom Properties using SCSS values
 :root {
-  // Layout
-  --dp-panel-top: #{$panel-top};
-  --dp-panel-left: #{$panel-left};
-  --dp-panel-width: #{$panel-width};
-  --dp-panel-height: #{$panel-height};
-  --dp-panel-z-index: #{$panel-z-index};
+	// Layout
+	--dp-panel-top: #{$panel-top};
+	--dp-panel-left: #{$panel-left};
+	--dp-panel-width: #{$panel-width};
+	--dp-panel-height: #{$panel-height};
+	--dp-panel-z-index: #{$panel-z-index};
 
-  // Overlay
-  --dp-overlay-z-index: #{$overlay-z-index};
-  --dp-overlay-background: #{$overlay-background};
-  --dp-overlay-backdrop-filter: #{$overlay-backdrop-filter};
-  --dp-overlay-transition: #{$overlay-transition};
+	// Overlay
+	--dp-overlay-z-index: #{$overlay-z-index};
+	--dp-overlay-background: #{$overlay-background};
+	--dp-overlay-backdrop-filter: #{$overlay-backdrop-filter};
+	--dp-overlay-transition: #{$overlay-transition};
 
-  // Content
-  --dp-content-display: #{$content-display};
-  --dp-content-background: #{$content-background};
-  --dp-content-z-index: #{$content-z-index};
-  --dp-content-shadow: #{$content-shadow};
-  --dp-content-border-radius: #{$content-border-radius};
+	// Content
+	--dp-content-display: #{$content-display};
+	--dp-content-background: #{$content-background};
+	--dp-content-z-index: #{$content-z-index};
+	--dp-content-shadow: #{$content-shadow};
+	--dp-content-border-radius: #{$content-border-radius};
 
-  // Animation
-  --dp-transition-duration: #{$transition-duration};
-  --dp-transition-timing: #{$transition-timing};
+	// Animation
+	--dp-transition-duration: #{$transition-duration};
+	--dp-transition-timing: #{$transition-timing};
 }

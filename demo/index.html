@@ -18,20 +18,20 @@
 				background-color: #f0f2f5;
 				color: #333;
 			}
-			
+
 			.image-info-wrapper {
 				position: relative;
 				height: 100vh;
 				width: 100%;
 				overflow: hidden;
 			}
-			
+
 			.background-image {
 				width: 100%;
 				height: 100%;
 				object-fit: cover;
 			}
-			
+
 			.content-overlay {
 				position: absolute;
 				top: 0;
@@ -48,37 +48,37 @@
 				padding: 20px;
 				box-sizing: border-box;
 			}
-			
+
 			.content-overlay h1 {
 				font-size: 3rem;
 				margin: 20px 0;
 				text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 			}
-			
+
 			.content-overlay p {
 				font-size: 1.2rem;
 				max-width: 600px;
 				text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 			}
-			
+
 			.content-section {
 				padding: 50px 20px;
 				max-width: 1200px;
 				margin: 0 auto;
 				min-height: 100vh;
 			}
-			
+
 			.content-section h2 {
 				font-size: 2rem;
 				margin-bottom: 20px;
 			}
-			
+
 			.content-section p {
 				font-size: 1.1rem;
 				line-height: 1.6;
 				margin-bottom: 20px;
 			}
-			
+
 			/* Body scroll lock when dialog is open */
 			body.overflow-hidden {
 				overflow: hidden;
@@ -97,24 +97,24 @@
 				/* Custom overlay styling */
 				--dp-overlay-background: rgba(17, 25, 40, 0.6);
 				--dp-overlay-backdrop-filter: blur(4px) saturate(180%);
-				
+
 				/* Custom content styling */
 				--dp-content-background: #ffffff;
 				--dp-content-border-radius: 12px;
 				--dp-content-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-				
+
 				/* Animation timing */
 				--dp-transition-duration: 350ms;
 				--dp-transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
 			}
-			
+
 			/* Dialog content internal styling */
 			dialog-content {
 				padding: 0;
 				width: min(500px, 90vw);
 				max-width: 100%;
 			}
-			
+
 			.content {
 				padding: 24px;
 			}
@@ -136,24 +136,24 @@
 				justify-content: center;
 				transition: background-color 0.2s;
 			}
-			
+
 			.close-button:hover {
 				background-color: rgba(0, 0, 0, 0.05);
 			}
-			
+
 			#dialog-title {
 				margin-top: 0;
 				margin-bottom: 16px;
 				color: #333;
 				font-weight: 600;
 			}
-			
+
 			.button-group {
 				display: flex;
 				justify-content: flex-end;
 				margin-top: 24px;
 			}
-			
+
 			.trigger-button {
 				padding: 12px 28px;
 				background-color: #0077ff;
@@ -168,44 +168,44 @@
 				letter-spacing: 0.5px;
 				margin-bottom: 20px;
 			}
-			
+
 			.trigger-button:hover {
 				background-color: #0066db;
 				transform: translateY(-2px);
 				box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 			}
-			
+
 			.trigger-button:active {
 				transform: translateY(0);
 				box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 			}
-			
+
 			/* Dialog button */
 			dialog-content .trigger-button {
 				margin-bottom: 0;
 			}
-			
+
 			/* Event log styling */
 			.event-log {
 				margin-top: 30px;
 				padding: 15px;
 				background-color: #f5f5f5;
 				border-radius: 8px;
-				box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+				box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 			}
-			
+
 			.event-log h3 {
 				margin-top: 0;
 				color: #333;
 				font-size: 1.2rem;
 			}
-			
+
 			.event-log ul {
 				margin: 0;
 				padding: 0;
 				list-style: none;
 			}
-			
+
 			.event-log li {
 				padding: 8px 12px;
 				margin-bottom: 8px;
@@ -214,10 +214,10 @@
 				border-radius: 4px;
 				font-family: monospace;
 				font-size: 0.9rem;
-				box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+				box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 				transition: all 0.2s ease;
 			}
-			
+
 			.event-log li:last-child {
 				border-left-color: #ff6b6b;
 				font-weight: bold;
@@ -226,7 +226,10 @@
 	</head>
 	<body>
 		<div class="image-info-wrapper">
-			<img src="./cancun.jpg" alt="Cancun beach view" class="background-image">
+			<img
+				src="./cancun.jpg"
+				alt="Cancun beach view"
+				class="background-image" />
 			<div class="content-overlay">
 				<!-- Trigger Button -->
 				<button
@@ -240,11 +243,18 @@
 				<p>Scroll down to see how body scroll locking works</p>
 			</div>
 		</div>
-		
+
 		<div class="content-section">
 			<h2>Scroll Content</h2>
-			<p>This content demonstrates how the page scrolling is locked when the dialog is open.</p>
-			<p>When you open the dialog, the page will be frozen in place. When you close it, you'll return to your exact scroll position.</p>
+			<p>
+				This content demonstrates how the page scrolling is locked
+				when the dialog is open.
+			</p>
+			<p>
+				When you open the dialog, the page will be frozen in place.
+				When you close it, you'll return to your exact scroll
+				position.
+			</p>
 		</div>
 
 		<!-- Dialog Panel Component -->
@@ -264,8 +274,8 @@
 					<h2 id="dialog-title">Dialog Header</h2>
 					<p id="dialog-description">
 						This is a demonstration of the dialog panel component. You
-						can add your content here. The dialog is now properly centered
-						with a nice animation and backdrop blur effect.
+						can add your content here. The dialog is now properly
+						centered with a nice animation and backdrop blur effect.
 					</p>
 					<div class="button-group">
 						<button data-action="hide-dialog" class="trigger-button">
@@ -277,103 +287,112 @@
 		</dialog-panel>
 
 		<script type="module">
-		// Import the dialog panel component
-		import './dialog-panel.esm.js';
-		
-		// Example of using events
-		const dialog = document.getElementById('demo-dialog');
-		const eventLog = document.createElement('div');
-		eventLog.classList.add('event-log');
-		eventLog.innerHTML = '<h3>Event Log:</h3><ul></ul>';
-		document.querySelector('.content-section').appendChild(eventLog);
-		
-		const logEvent = (eventName, detail) => {
-			const list = eventLog.querySelector('ul');
-			const item = document.createElement('li');
-			item.textContent = `${eventName} at ${new Date().toLocaleTimeString()}`;
-			if (detail && detail.triggerElement) {
-				item.textContent += ` (triggered by ${detail.triggerElement.tagName})`;
-			}
-			list.appendChild(item);
-			
-			// Limit to last 10 events
-			if (list.children.length > 10) {
-				list.removeChild(list.firstChild);
-			}
-		};
-		
-		// Listen for all dialog events
-		dialog.addEventListener('beforeShow', (e) => {
-			logEvent('beforeShow', e.detail);
-		});
-		
-		dialog.addEventListener('show', (e) => {
-			logEvent('show', e.detail);
-		});
-		
-		dialog.addEventListener('beforeHide', (e) => {
-			logEvent('beforeHide', e.detail);
-		});
-		
-		dialog.addEventListener('hide', (e) => {
-			logEvent('hide', e.detail);
-		});
-		
-		dialog.addEventListener('afterHide', (e) => {
-			logEvent('afterHide', e.detail);
-		});
-		
-		// Add confirmation button to demonstrate preventDefault
-		const confirmBtn = document.createElement('button');
-		confirmBtn.textContent = 'Open Dialog with Confirmation';
-		confirmBtn.className = 'trigger-button';
-		confirmBtn.style.backgroundColor = '#ff6b6b';
-		confirmBtn.style.marginLeft = '20px';
-		
-		document.querySelector('.content-section').appendChild(confirmBtn);
-		
-		confirmBtn.addEventListener('click', () => {
-			dialog.show(confirmBtn);
-		});
-		
-		// Create a temporary flag to demonstrate preventing dialog close
-		let preventCloseOnce = false;
-		const preventCloseBtn = document.createElement('button');
-		preventCloseBtn.textContent = 'Prevent Next Close';
-		preventCloseBtn.className = 'trigger-button';
-		preventCloseBtn.style.backgroundColor = '#ff9e5e';
-		
-		document.querySelector('.content-section').appendChild(preventCloseBtn);
-		
-		preventCloseBtn.addEventListener('click', () => {
-			preventCloseOnce = true;
-			alert('The next attempt to close the dialog will be prevented!');
-		});
-		
-		// Example of preventing dialog from closing
-		dialog.addEventListener('beforeHide', (e) => {
-			if (preventCloseOnce) {
-				e.preventDefault();
-				preventCloseOnce = false;
-				
-				// Show a message inside the dialog
-				const message = document.createElement('div');
-				message.className = 'prevention-message';
-				message.innerHTML = '<p>Close prevented! Try closing again.</p>';
-				message.style.padding = '10px';
-				message.style.margin = '10px 0';
-				message.style.backgroundColor = '#ffeeee';
-				message.style.borderRadius = '4px';
-				
-				const content = dialog.querySelector('.content');
-				content.appendChild(message);
-				
-				// Remove the message after 2 seconds
-				setTimeout(() => {
-					message.remove();
-				}, 2000);
-			}
-		});
-	</script>
+			// Import the dialog panel component
+			import './dialog-panel.esm.js';
+
+			// Example of using events
+			const dialog = document.getElementById('demo-dialog');
+			const eventLog = document.createElement('div');
+			eventLog.classList.add('event-log');
+			eventLog.innerHTML = '<h3>Event Log:</h3><ul></ul>';
+			document
+				.querySelector('.content-section')
+				.appendChild(eventLog);
+
+			const logEvent = (eventName, detail) => {
+				const list = eventLog.querySelector('ul');
+				const item = document.createElement('li');
+				item.textContent = `${eventName} at ${new Date().toLocaleTimeString()}`;
+				if (detail && detail.triggerElement) {
+					item.textContent += ` (triggered by ${detail.triggerElement.tagName})`;
+				}
+				list.appendChild(item);
+
+				// Limit to last 10 events
+				if (list.children.length > 10) {
+					list.removeChild(list.firstChild);
+				}
+			};
+
+			// Listen for all dialog events
+			dialog.addEventListener('beforeShow', (e) => {
+				logEvent('beforeShow', e.detail);
+			});
+
+			dialog.addEventListener('show', (e) => {
+				logEvent('show', e.detail);
+			});
+
+			dialog.addEventListener('beforeHide', (e) => {
+				logEvent('beforeHide', e.detail);
+			});
+
+			dialog.addEventListener('hide', (e) => {
+				logEvent('hide', e.detail);
+			});
+
+			dialog.addEventListener('afterHide', (e) => {
+				logEvent('afterHide', e.detail);
+			});
+
+			// Add confirmation button to demonstrate preventDefault
+			const confirmBtn = document.createElement('button');
+			confirmBtn.textContent = 'Open Dialog with Confirmation';
+			confirmBtn.className = 'trigger-button';
+			confirmBtn.style.backgroundColor = '#ff6b6b';
+			confirmBtn.style.marginLeft = '20px';
+
+			document
+				.querySelector('.content-section')
+				.appendChild(confirmBtn);
+
+			confirmBtn.addEventListener('click', () => {
+				dialog.show(confirmBtn);
+			});
+
+			// Create a temporary flag to demonstrate preventing dialog close
+			let preventCloseOnce = false;
+			const preventCloseBtn = document.createElement('button');
+			preventCloseBtn.textContent = 'Prevent Next Close';
+			preventCloseBtn.className = 'trigger-button';
+			preventCloseBtn.style.backgroundColor = '#ff9e5e';
+
+			document
+				.querySelector('.content-section')
+				.appendChild(preventCloseBtn);
+
+			preventCloseBtn.addEventListener('click', () => {
+				preventCloseOnce = true;
+				alert(
+					'The next attempt to close the dialog will be prevented!'
+				);
+			});
+
+			// Example of preventing dialog from closing
+			dialog.addEventListener('beforeHide', (e) => {
+				if (preventCloseOnce) {
+					e.preventDefault();
+					preventCloseOnce = false;
+
+					// Show a message inside the dialog
+					const message = document.createElement('div');
+					message.className = 'prevention-message';
+					message.innerHTML =
+						'<p>Close prevented! Try closing again.</p>';
+					message.style.padding = '10px';
+					message.style.margin = '10px 0';
+					message.style.backgroundColor = '#ffeeee';
+					message.style.borderRadius = '4px';
+
+					const content = dialog.querySelector('.content');
+					content.appendChild(message);
+
+					// Remove the message after 2 seconds
+					setTimeout(() => {
+						message.remove();
+					}, 2000);
+				}
+			});
+		</script>
 	</body>
 </html>

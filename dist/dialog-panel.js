@@ -1,8 +1,15 @@
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-	typeof define === 'function' && define.amd ? define(['exports'], factory) :
-	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.DialogPanel = {}));
-})(this, (function (exports) { 'use strict';
+	typeof exports === 'object' && typeof module !== 'undefined'
+		? factory(exports)
+		: typeof define === 'function' && define.amd
+			? define(['exports'], factory)
+			: ((global =
+					typeof globalThis !== 'undefined'
+						? globalThis
+						: global || self),
+				factory((global.DialogPanel = {})));
+})(this, function (exports) {
+	'use strict';
 
 	/**
 	 * Retrieves all focusable elements within a given container.
@@ -506,6 +513,5 @@
 	exports.default = DialogPanel;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
-
-}));
+});
 //# sourceMappingURL=dialog-panel.js.map

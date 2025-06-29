@@ -303,5 +303,10 @@ if (!customElements.get('dialog-content')) {
 	customElements.define('dialog-content', DialogContent);
 }
 
-export { DialogContent, DialogOverlay, DialogPanel, DialogPanel as default };
+export {
+	DialogContent,
+	DialogOverlay,
+	DialogPanel,
+	DialogPanel as default,
+};
 //# sourceMappingURL=dialog-panel.esm.js.map
