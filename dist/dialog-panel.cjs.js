@@ -213,8 +213,12 @@ class DialogPanel extends HTMLElement {
 		// If event was canceled (preventDefault was called), don't hide the dialog
 		if (!hideAllowed) return false;
 
-		// Remove open attribute for CSS :has() selector
-		_.removeAttribute('open');
+		// ensure focus is moved out of the dialog
+		const activeElement = document.activeElement;
+		if (activeElement && _.contains(activeElement)) {
+			// Blur the currently focused element if it's inside the dialog
+			activeElement.blur();
+		}
 
 		// Update ARIA states and restore focus
 		if (_.triggerEl) {
@@ -223,20 +227,16 @@ class DialogPanel extends HTMLElement {
 			// mark trigger as no longer expanded
 			_.triggerEl.setAttribute('aria-expanded', 'false');
 		} else {
-			// If no trigger element, ensure focus is moved out of the dialog
-			// to prevent "aria-hidden on focused element" warning
-			const activeElement = document.activeElement;
-			if (activeElement && _.contains(activeElement)) {
-				// Blur the currently focused element if it's inside the dialog
-				activeElement.blur();
-				// Move focus to body to ensure it's not trapped
-				document.body.focus();
-			}
+			// Move focus to body to ensure it's not trapped
+			document.body.focus();
 		}
 
 		// Set aria-hidden to start transition
 		// The transitionend event handler will add display:none when complete
 		_.setAttribute('aria-hidden', 'true');
+		// Remove open attribute for CSS :has() selector
+
+		_.removeAttribute('open');
 
 		// Dispatch hide event - dialog is now starting to hide
 		_.dispatchEvent(
@@ -258,7 +258,6 @@ class DialogOverlay extends HTMLElement {
 	constructor() {
 		super();
 		this.setAttribute('tabindex', '-1');
-		this.setAttribute('aria-hidden', 'true');
 		this.dialogPanel = this.closest('dialog-panel');
 		this.#bindUI();
 	}
