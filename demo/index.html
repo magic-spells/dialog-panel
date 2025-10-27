@@ -79,19 +79,6 @@
 				margin-bottom: 20px;
 			}
 
-			/* Body scroll lock when dialog is open */
-			body.overflow-hidden {
-				overflow: hidden;
-				position: fixed;
-				width: 100%;
-				height: 100%;
-				/* The top property will be set dynamically by the component */
-				left: 0;
-				right: 0;
-				/* Prevent content shifting */
-				margin: 0;
-			}
-
 			/* Custom dialog panel styles */
 			:root {
 				/* Custom overlay styling */
@@ -267,7 +254,7 @@
 				<button
 					aria-label="Close dialog"
 					class="close-button"
-					data-action="hide-dialog">
+					data-action-hide-dialog>
 					&times;
 				</button>
 				<div class="content">
@@ -278,7 +265,7 @@
 						centered with a nice animation and backdrop blur effect.
 					</p>
 					<div class="button-group">
-						<button data-action="hide-dialog" class="trigger-button">
+						<button data-action-hide-dialog class="trigger-button">
 							Close Dialog
 						</button>
 					</div>

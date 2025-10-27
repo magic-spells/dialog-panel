@@ -71,3 +71,8 @@ dialog-content {
 		display: none;
 	}
 }
+
+// Body scroll lock when dialog is open using :has() selector
+body:has(dialog-panel[open]) {
+	overflow: hidden;
+}

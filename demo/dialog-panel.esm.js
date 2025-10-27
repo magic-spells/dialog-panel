@@ -187,9 +187,15 @@ class FocusTrapEnd extends HTMLElement {
 	};
 }
 
-customElements.define('focus-trap', FocusTrap);
-customElements.define('focus-trap-start', FocusTrapStart);
-customElements.define('focus-trap-end', FocusTrapEnd);
+if (!customElements.get('focus-trap')) {
+	customElements.define('focus-trap', FocusTrap);
+}
+if (!customElements.get('focus-trap-start')) {
+	customElements.define('focus-trap-start', FocusTrapStart);
+}
+if (!customElements.get('focus-trap-end')) {
+	customElements.define('focus-trap-end', FocusTrapEnd);
+}
 
 /**
  * Custom element that creates an accessible modal dialog panel with focus management
@@ -197,7 +203,6 @@ customElements.define('focus-trap-end', FocusTrapEnd);
  */
 class DialogPanel extends HTMLElement {
 	#handleTransitionEnd;
-	#scrollPosition = 0;
 
 	/**
 	 * Clean up event listeners when component is removed from DOM
@@ -210,38 +215,6 @@ class DialogPanel extends HTMLElement {
 				_.#handleTransitionEnd
 			);
 		}
-
-		// Ensure body scroll is restored if component is removed while open
-		document.body.classList.remove('overflow-hidden');
-		this.#restoreScroll();
-	}
-
-	/**
-	 * Saves current scroll position and locks body scrolling
-	 * @private
-	 */
-	#lockScroll() {
-		const _ = this;
-		// Save current scroll position
-		_.#scrollPosition = window.pageYOffset;
-
-		// Apply fixed position to body
-		document.body.classList.add('overflow-hidden');
-		document.body.style.top = `-${_.#scrollPosition}px`;
-	}
-
-	/**
-	 * Restores scroll position when dialog is closed
-	 * @private
-	 */
-	#restoreScroll() {
-		const _ = this;
-		// Remove fixed positioning
-		document.body.classList.remove('overflow-hidden');
-		document.body.style.removeProperty('top');
-
-		// Restore scroll position
-		window.scrollTo(0, _.#scrollPosition);
 	}
 	/**
 	 * Initializes the dialog panel, sets up focus trap and overlay
@@ -255,7 +228,6 @@ class DialogPanel extends HTMLElement {
 		_.setAttribute('aria-hidden', 'true');
 
 		_.contentPanel = _.querySelector('dialog-content');
-		_.focusTrap = document.createElement('focus-trap');
 		_.triggerEl = null;
 
 		// Create a handler for transition end events
@@ -276,6 +248,22 @@ class DialogPanel extends HTMLElement {
 			}
 		};
 
+		// Set up focus-trap inside dialog-content
+		// Check if focus-trap already exists
+		_.focusTrap = _.contentPanel.querySelector('focus-trap');
+		if (!_.focusTrap) {
+			_.focusTrap = document.createElement('focus-trap');
+
+			// Move all existing dialog-content children into focus-trap
+			const existingContent = Array.from(_.contentPanel.childNodes);
+			existingContent.forEach((child) =>
+				_.focusTrap.appendChild(child)
+			);
+
+			// Insert focus-trap inside dialog-content
+			_.contentPanel.appendChild(_.focusTrap);
+		}
+
 		// Ensure we have labelledby and describedby references
 		if (!_.getAttribute('aria-labelledby')) {
 			const heading = _.querySelector('h1, h2, h3');
@@ -286,14 +274,6 @@ class DialogPanel extends HTMLElement {
 				_.setAttribute('aria-labelledby', heading.id);
 			}
 		}
-
-		_.contentPanel.parentNode.insertBefore(
-			_.focusTrap,
-			_.contentPanel
-		);
-		_.focusTrap.appendChild(_.contentPanel);
-
-		_.focusTrap.setupTrap();
 
 		// Add modal overlay
 		_.prepend(document.createElement('dialog-overlay'));
@@ -322,7 +302,7 @@ class DialogPanel extends HTMLElement {
 
 		// Handle close buttons
 		_.addEventListener('click', (e) => {
-			if (!e.target.closest('[data-action="hide-dialog"]')) return;
+			if (!e.target.closest('[data-action-hide-dialog]')) return;
 			_.hide();
 		});
 
@@ -368,6 +348,9 @@ class DialogPanel extends HTMLElement {
 		// If event was canceled (preventDefault was called), don't show the dialog
 		if (!showAllowed) return false;
 
+		// Add open attribute for CSS :has() selector
+		_.setAttribute('open', '');
+
 		// Remove the hidden class first to ensure content is rendered
 		_.contentPanel.classList.remove('hidden');
 
@@ -375,12 +358,11 @@ class DialogPanel extends HTMLElement {
 		requestAnimationFrame(() => {
 			// Update ARIA states
 			_.setAttribute('aria-hidden', 'false');
+
+			// set trigger element to expanded: true
 			if (_.triggerEl) {
 				_.triggerEl.setAttribute('aria-expanded', 'true');
 			}
-
-			// Lock body scrolling and save scroll position
-			_.#lockScroll();
 
 			// Focus management
 			const firstFocusable = _.querySelector(
@@ -400,8 +382,6 @@ class DialogPanel extends HTMLElement {
 				})
 			);
 		});
-
-		return true;
 	}
 
 	/**
@@ -426,15 +406,25 @@ class DialogPanel extends HTMLElement {
 		// If event was canceled (preventDefault was called), don't hide the dialog
 		if (!hideAllowed) return false;
 
-		// Restore body scroll and scroll position
-		_.#restoreScroll();
+		// Remove open attribute for CSS :has() selector
+		_.removeAttribute('open');
 
-		// Update ARIA states
+		// Update ARIA states and restore focus
 		if (_.triggerEl) {
 			// remove focus from modal panel first
 			_.triggerEl.focus();
 			// mark trigger as no longer expanded
 			_.triggerEl.setAttribute('aria-expanded', 'false');
+		} else {
+			// If no trigger element, ensure focus is moved out of the dialog
+			// to prevent "aria-hidden on focused element" warning
+			const activeElement = document.activeElement;
+			if (activeElement && _.contains(activeElement)) {
+				// Blur the currently focused element if it's inside the dialog
+				activeElement.blur();
+				// Move focus to body to ensure it's not trapped
+				document.body.focus();
+			}
 		}
 
 		// Set aria-hidden to start transition
@@ -460,7 +450,7 @@ class DialogPanel extends HTMLElement {
 class DialogOverlay extends HTMLElement {
 	constructor() {
 		super();
-		this.setAttribute('tabindex', '-1'); // Changed to -1 as it shouldn't be focusable
+		this.setAttribute('tabindex', '-1');
 		this.setAttribute('aria-hidden', 'true');
 		this.dialogPanel = this.closest('dialog-panel');
 		this.#bindUI();
@@ -480,7 +470,7 @@ class DialogOverlay extends HTMLElement {
 class DialogContent extends HTMLElement {
 	constructor() {
 		super();
-		this.setAttribute('role', 'document'); // Optional: helps with document structure
+		this.setAttribute('role', 'document');
 	}
 }
 
@@ -494,10 +484,5 @@ if (!customElements.get('dialog-content')) {
 	customElements.define('dialog-content', DialogContent);
 }
 
-export {
-	DialogContent,
-	DialogOverlay,
-	DialogPanel,
-	DialogPanel as default,
-};
+export { DialogContent, DialogOverlay, DialogPanel, DialogPanel as default };
 //# sourceMappingURL=dialog-panel.esm.js.map

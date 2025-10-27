@@ -50,7 +50,7 @@ Or include directly in your HTML:
 	aria-hidden="true">
 	<dialog-overlay></dialog-overlay>
 	<dialog-content>
-		<button aria-label="Close dialog" data-action="hide-dialog">
+		<button aria-label="Close dialog" data-action-hide-dialog>
 			&times;
 		</button>
 		<div>
@@ -75,7 +75,7 @@ Or include directly in your HTML:
 - The dialog is initially hidden (`aria-hidden="true"`)
 - Clicking the button triggers the `show()` method, making the dialog visible
 - When opened, sets `aria-modal="true"` to indicate modal behavior
-- Clicking the overlay or a close button (`data-action="hide-dialog"`) triggers the `hide()` method
+- Clicking the overlay or a close button (`data-action-hide-dialog`) triggers the `hide()` method
 - Keyboard focus is automatically trapped within the dialog when open
 - Pressing ESC closes the dialog
 - Focus returns to the trigger button when closed
