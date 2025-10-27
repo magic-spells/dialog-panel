@@ -56,11 +56,12 @@ dialog-content {
   overflow: auto;
   transition: opacity var(--dp-transition-duration, 300ms) var(--dp-transition-timing, ease-out), transform var(--dp-transition-duration, 300ms) var(--dp-transition-timing, ease-out);
   /* When shown, reset transform to center */
-  /* When explicitly hidden, remove from layout */
 }
 dialog-panel[aria-hidden=false] dialog-content {
   transform: translate(-50%, -50%) scale(1);
 }
+
+/* When explicitly hidden, remove from layout */
 dialog-content.hidden {
   display: none;
 }

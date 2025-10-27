@@ -65,11 +65,11 @@ dialog-content {
 	dialog-panel[aria-hidden='false'] & {
 		transform: translate(-50%, -50%) scale(1);
 	}
+}
 
-	/* When explicitly hidden, remove from layout */
-	&.hidden {
-		display: none;
-	}
+/* When explicitly hidden, remove from layout */
+dialog-content.hidden {
+	display: none;
 }
 
 // Body scroll lock when dialog is open using :has() selector
