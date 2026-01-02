@@ -1,290 +1,362 @@
-import '@magic-spells/focus-trap';
-
 /**
- * Custom element that creates an accessible modal dialog panel with focus management
+ * DialogPanel - A lightweight web component wrapper for native <dialog> elements
+ * with state-driven animations.
+ *
  * @extends HTMLElement
+ *
+ * @property {string} state - Current state: 'hidden' | 'showing' | 'shown' | 'hiding'
+ * @property {HTMLDialogElement} dialog - Reference to inner <dialog> element
+ * @property {boolean} isOpen - True if state is 'showing' or 'shown'
+ * @property {HTMLElement|null} triggerElement - Element that triggered current action
+ *
+ * @fires beforeShow - Fired before showing starts (cancelable)
+ * @fires shown - Fired after show animation completes
+ * @fires beforeHide - Fired before hiding starts (cancelable)
+ * @fires hidden - Fired after hide animation completes
  */
 class DialogPanel extends HTMLElement {
-	#handleTransitionEnd;
+	// Private fields
+	#state = 'hidden';
+	#triggerElement = null;
+	#dialog = null;
+	#result = null;
 
-	/**
-	 * Clean up event listeners when component is removed from DOM
-	 */
+	// Event handler references for cleanup
+	#handlers = {
+		click: null,
+		dialogClick: null,
+		cancel: null,
+	};
+
+	// Animation cleanup references
+	#pendingRAF = null;
+	#pendingTimeout = null;
+
+	// Fallback timeout for transitionend (in ms)
+	static TRANSITION_FALLBACK_TIMEOUT = 500;
+
+	connectedCallback() {
+		const _ = this;
+
+		// Find inner dialog element
+		_.#dialog = _.querySelector('dialog');
+
+		if (!_.#dialog) {
+			console.warn(
+				'DialogPanel: No <dialog> element found inside <dialog-panel>'
+			);
+			return;
+		}
+
+		// Auto-create dialog-backdrop if not present
+		if (!_.querySelector('dialog-backdrop')) {
+			const backdrop = document.createElement('dialog-backdrop');
+			_.insertBefore(backdrop, _.firstChild);
+		}
+
+		// Set initial state attribute
+		_.#setState('hidden');
+
+		// Bind event handlers
+		_.#bindEvents();
+	}
+
 	disconnectedCallback() {
 		const _ = this;
-		if (_.contentPanel) {
-			_.contentPanel.removeEventListener(
-				'transitionend',
-				_.#handleTransitionEnd
-			);
+
+		// Cancel pending animations
+		if (_.#pendingRAF) {
+			cancelAnimationFrame(_.#pendingRAF);
+			_.#pendingRAF = null;
 		}
-	}
-	/**
-	 * Initializes the dialog panel, sets up focus trap and overlay
-	 */
-	constructor() {
-		super();
-		const _ = this;
-		_.id = _.getAttribute('id');
-		_.setAttribute('role', 'dialog');
-		_.setAttribute('aria-modal', 'true');
-		_.setAttribute('aria-hidden', 'true');
+		if (_.#pendingTimeout) {
+			clearTimeout(_.#pendingTimeout);
+			_.#pendingTimeout = null;
+		}
 
-		_.contentPanel = _.querySelector('dialog-content');
-		_.triggerEl = null;
-
-		// Create a handler for transition end events
-		_.#handleTransitionEnd = (e) => {
-			if (
-				e.propertyName === 'opacity' &&
-				_.getAttribute('aria-hidden') === 'true'
-			) {
-				_.contentPanel.classList.add('hidden');
-
-				// Dispatch afterHide event - dialog has completed its transition
-				_.dispatchEvent(
-					new CustomEvent('afterHide', {
-						bubbles: true,
-						detail: { triggerElement: _.triggerEl },
-					})
+		// Clean up event listeners
+		if (_.#handlers.click) {
+			_.removeEventListener('click', _.#handlers.click);
+		}
+		if (_.#dialog) {
+			if (_.#handlers.dialogClick) {
+				_.#dialog.removeEventListener(
+					'click',
+					_.#handlers.dialogClick
 				);
 			}
-		};
-
-		// Set up focus-trap inside dialog-content
-		// Check if focus-trap already exists
-		_.focusTrap = _.contentPanel.querySelector('focus-trap');
-		if (!_.focusTrap) {
-			_.focusTrap = document.createElement('focus-trap');
-
-			// Move all existing dialog-content children into focus-trap
-			const existingContent = Array.from(_.contentPanel.childNodes);
-			existingContent.forEach((child) =>
-				_.focusTrap.appendChild(child)
-			);
-
-			// Insert focus-trap inside dialog-content
-			_.contentPanel.appendChild(_.focusTrap);
-		}
-
-		// Ensure we have labelledby and describedby references
-		if (!_.getAttribute('aria-labelledby')) {
-			const heading = _.querySelector('h1, h2, h3');
-			if (heading && !heading.id) {
-				heading.id = `${_.id}-title`;
-			}
-			if (heading?.id) {
-				_.setAttribute('aria-labelledby', heading.id);
+			if (_.#handlers.cancel) {
+				_.#dialog.removeEventListener('cancel', _.#handlers.cancel);
 			}
 		}
-
-		// Add modal overlay
-		_.prepend(document.createElement('dialog-overlay'));
-		_.#bindUI();
-		_.#bindKeyboard();
 	}
 
 	/**
-	 * Binds click events for showing and hiding the dialog
+	 * Bind event listeners for close buttons, backdrop, and escape key
 	 * @private
 	 */
-	#bindUI() {
+	#bindEvents() {
 		const _ = this;
 
-		// Handle trigger buttons
-		document.addEventListener('click', (e) => {
-			const trigger = e.target.closest(`[aria-controls="${_.id}"]`);
-			if (!trigger) return;
-
-			if (trigger.getAttribute('data-prevent-default') === 'true') {
-				e.preventDefault();
+		// Handle close buttons with data-action-hide-dialog
+		_.#handlers.click = (e) => {
+			const trigger = e.target.closest('[data-action-hide-dialog]');
+			if (trigger) {
+				e.stopPropagation();
+				_.hide(trigger);
 			}
+		};
+		_.addEventListener('click', _.#handlers.click);
 
-			_.show(trigger);
-		});
+		// Handle backdrop click - detect clicks outside dialog bounds
+		// This works because clicks on ::backdrop still fire on the dialog element
+		_.#handlers.dialogClick = (e) => {
+			const rect = _.#dialog.getBoundingClientRect();
+			const clickedOutside =
+				e.clientX < rect.left ||
+				e.clientX > rect.right ||
+				e.clientY < rect.top ||
+				e.clientY > rect.bottom;
+			if (clickedOutside) {
+				e.stopPropagation();
+				_.hide();
+			}
+		};
+		_.#dialog.addEventListener('click', _.#handlers.dialogClick);
 
-		// Handle close buttons
-		_.addEventListener('click', (e) => {
-			if (!e.target.closest('[data-action-hide-dialog]')) return;
+		// Handle escape key - intercept native cancel and animate close
+		_.#handlers.cancel = (e) => {
+			e.preventDefault();
+			e.stopPropagation();
 			_.hide();
-		});
-
-		// Add transition end listener
-		_.contentPanel.addEventListener(
-			'transitionend',
-			_.#handleTransitionEnd
-		);
+		};
+		_.#dialog.addEventListener('cancel', _.#handlers.cancel);
 	}
 
 	/**
-	 * Binds keyboard events for accessibility
-	 * @private
-	 */
-	#bindKeyboard() {
-		this.addEventListener('keydown', (e) => {
-			if (e.key === 'Escape') {
-				this.hide();
-			}
-		});
-	}
-
-	/**
-	 * Shows the dialog and traps focus within it
-	 * @param {HTMLElement} [triggerEl=null] - The element that triggered the dialog
-	 * @fires DialogPanel#beforeShow - Fired before the dialog starts to show
-	 * @fires DialogPanel#show - Fired when the dialog has been shown
-	 * @returns {boolean} False if the show was prevented by a beforeShow event handler
+	 * Show the dialog with animation
+	 * @param {HTMLElement} [triggerEl=null] - The element that triggered the show
+	 * @returns {boolean} False if show was prevented via beforeShow event
 	 */
 	show(triggerEl = null) {
 		const _ = this;
-		_.triggerEl = triggerEl || false;
 
-		// Dispatch beforeShow event - allows preventing the dialog from opening
-		const beforeShowEvent = new CustomEvent('beforeShow', {
-			bubbles: true,
-			cancelable: true,
-			detail: { triggerElement: _.triggerEl },
-		});
+		// Check if already showing/shown
+		if (_.#state === 'showing' || _.#state === 'shown') return true;
 
-		const showAllowed = _.dispatchEvent(beforeShowEvent);
+		// If currently hiding, ignore (let hide complete first)
+		if (_.#state === 'hiding') return false;
 
-		// If event was canceled (preventDefault was called), don't show the dialog
-		if (!showAllowed) return false;
+		// Store trigger element for focus return later
+		_.#triggerElement = triggerEl || null;
 
-		// Add open attribute for CSS :has() selector
-		_.setAttribute('open', '');
+		// Fire beforeShow (cancelable)
+		if (!_.#emit('beforeShow', { cancelable: true })) return false;
 
-		// Remove the hidden class first to ensure content is rendered
-		_.contentPanel.classList.remove('hidden');
+		// Set state to 'showing' and open native dialog
+		_.#setState('showing');
+		_.#dialog.showModal();
 
-		// Give the browser a moment to process before starting animation
-		requestAnimationFrame(() => {
-			// Update ARIA states
-			_.setAttribute('aria-hidden', 'false');
+		// Double RAF ensures browser has painted the 'showing' state
+		// before we transition to 'shown'
+		_.#pendingRAF = requestAnimationFrame(() => {
+			_.#pendingRAF = requestAnimationFrame(() => {
+				_.#pendingRAF = null;
+				_.#setState('shown');
 
-			// set trigger element to expanded: true
-			if (_.triggerEl) {
-				_.triggerEl.setAttribute('aria-expanded', 'true');
-			}
-
-			// Focus management
-			const firstFocusable = _.querySelector(
-				'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-			);
-			if (firstFocusable) {
-				requestAnimationFrame(() => {
-					firstFocusable.focus();
+				// Wait for transition to complete before firing 'shown' event
+				_.#waitForTransition(() => {
+					_.#emit('shown');
 				});
-			}
-
-			// Dispatch show event - dialog is now visible
-			_.dispatchEvent(
-				new CustomEvent('show', {
-					bubbles: true,
-					detail: { triggerElement: _.triggerEl },
-				})
-			);
+			});
 		});
-	}
-
-	/**
-	 * Hides the dialog and restores focus
-	 * @fires DialogPanel#beforeHide - Fired before the dialog starts to hide
-	 * @fires DialogPanel#hide - Fired when the dialog has started hiding (transition begins)
-	 * @fires DialogPanel#afterHide - Fired when the dialog has completed its hide transition
-	 * @returns {boolean} False if the hide was prevented by a beforeHide event handler
-	 */
-	hide() {
-		const _ = this;
-
-		// Dispatch beforeHide event - allows preventing the dialog from closing
-		const beforeHideEvent = new CustomEvent('beforeHide', {
-			bubbles: true,
-			cancelable: true,
-			detail: { triggerElement: _.triggerEl },
-		});
-
-		const hideAllowed = _.dispatchEvent(beforeHideEvent);
-
-		// If event was canceled (preventDefault was called), don't hide the dialog
-		if (!hideAllowed) return false;
-
-		// ensure focus is moved out of the dialog
-		const activeElement = document.activeElement;
-		if (activeElement && _.contains(activeElement)) {
-			// Blur the currently focused element if it's inside the dialog
-			activeElement.blur();
-		}
-
-		// Update ARIA states and restore focus
-		if (_.triggerEl) {
-			// remove focus from modal panel first
-			_.triggerEl.focus();
-			// mark trigger as no longer expanded
-			_.triggerEl.setAttribute('aria-expanded', 'false');
-		} else {
-			// Move focus to body to ensure it's not trapped
-			document.body.focus();
-		}
-
-		// Set aria-hidden to start transition
-		// The transitionend event handler will add display:none when complete
-		_.setAttribute('aria-hidden', 'true');
-		// Remove open attribute for CSS :has() selector
-
-		_.removeAttribute('open');
-
-		// Dispatch hide event - dialog is now starting to hide
-		_.dispatchEvent(
-			new CustomEvent('hide', {
-				bubbles: true,
-				detail: { triggerElement: _.triggerEl },
-			})
-		);
 
 		return true;
 	}
-}
 
-/**
- * Custom element that creates a clickable overlay for the dialog
- * @extends HTMLElement
- */
-class DialogOverlay extends HTMLElement {
-	constructor() {
-		super();
-		this.setAttribute('tabindex', '-1');
-		this.dialogPanel = this.closest('dialog-panel');
-		this.#bindUI();
-	}
+	/**
+	 * Hide the dialog with animation
+	 * @param {HTMLElement} [triggerEl=null] - The element that triggered the hide
+	 * @returns {boolean} False if hide was prevented via beforeHide event
+	 */
+	hide(triggerEl = null) {
+		const _ = this;
 
-	#bindUI() {
-		this.addEventListener('click', () => {
-			this.dialogPanel.hide();
+		// Check if already hiding/hidden
+		if (_.#state === 'hiding' || _.#state === 'hidden') return true;
+
+		// If currently showing, ignore (let show complete first)
+		if (_.#state === 'showing') return false;
+
+		// Capture result from trigger element
+		_.#result = triggerEl?.dataset?.result ?? null;
+
+		// Fire beforeHide (cancelable)
+		if (
+			!_.#emit('beforeHide', {
+				cancelable: true,
+				result: _.#result,
+				triggerElement: triggerEl,
+			})
+		) {
+			return false;
+		}
+
+		// Set state to 'hiding' - this triggers CSS exit animation
+		_.#setState('hiding');
+
+		// Wait for transition to complete
+		_.#waitForTransition(() => {
+			_.#dialog.close();
+			_.#setState('hidden');
+			_.#emit('hidden', {
+				result: _.#result,
+				triggerElement: triggerEl,
+			});
+
+			// Return focus to trigger element
+			if (_.#triggerElement) _.#triggerElement.focus();
+
+			// Clean up
+			_.#triggerElement = null;
+			_.#result = null;
 		});
+
+		return true;
+	}
+
+	/**
+	 * Wait for CSS transition to complete with fallback timeout
+	 * @param {Function} callback - Called when transition completes
+	 * @private
+	 */
+	#waitForTransition(callback) {
+		const _ = this;
+		let called = false;
+
+		const done = () => {
+			if (called) return;
+			called = true;
+			_.#dialog.removeEventListener('transitionend', onTransitionEnd);
+			if (_.#pendingTimeout) {
+				clearTimeout(_.#pendingTimeout);
+				_.#pendingTimeout = null;
+			}
+			callback();
+		};
+
+		const onTransitionEnd = (e) => {
+			if (e.target === _.#dialog) done();
+		};
+
+		_.#dialog.addEventListener('transitionend', onTransitionEnd);
+
+		_.#pendingTimeout = setTimeout(
+			done,
+			DialogPanel.TRANSITION_FALLBACK_TIMEOUT
+		);
+	}
+
+	/**
+	 * Set the component state
+	 * @param {string} newState - The new state
+	 * @private
+	 */
+	#setState(newState) {
+		this.#state = newState;
+		this.setAttribute('state', newState);
+	}
+
+	/**
+	 * Emit a custom event
+	 * @param {string} name - Event name
+	 * @param {Object} options - Event options
+	 * @returns {boolean} False if event was cancelled
+	 * @private
+	 */
+	#emit(name, options = {}) {
+		const _ = this;
+		const { cancelable = false, ...detail } = options;
+
+		const event = new CustomEvent(name, {
+			bubbles: true,
+			composed: true,
+			cancelable,
+			detail: {
+				triggerElement: _.#triggerElement,
+				result: _.#result,
+				state: _.#state,
+				...detail,
+			},
+		});
+
+		return _.dispatchEvent(event);
+	}
+
+	// Read-only properties
+	get state() {
+		return this.#state;
+	}
+	get dialog() {
+		return this.#dialog;
+	}
+	get isOpen() {
+		return this.#state === 'showing' || this.#state === 'shown';
+	}
+	get triggerElement() {
+		return this.#triggerElement;
 	}
 }
 
 /**
- * Custom element that wraps the content of the dialog
+ * DialogBackdrop - A custom backdrop element that animates with the dialog-panel state.
+ * Use this instead of native ::backdrop for consistent cross-browser animations.
+ *
  * @extends HTMLElement
  */
-class DialogContent extends HTMLElement {
-	constructor() {
-		super();
-		this.setAttribute('role', 'document');
+class DialogBackdrop extends HTMLElement {
+	#panel = null;
+	#handlers = {
+		click: null,
+	};
+
+	connectedCallback() {
+		const _ = this;
+
+		// Find parent dialog-panel
+		_.#panel = _.closest('dialog-panel');
+
+		if (!_.#panel) {
+			console.warn(
+				'DialogBackdrop: Must be inside a <dialog-panel> element'
+			);
+			return;
+		}
+
+		// Handle click to close
+		_.#handlers.click = () => {
+			_.#panel.hide();
+		};
+		_.addEventListener('click', _.#handlers.click);
+	}
+
+	disconnectedCallback() {
+		const _ = this;
+		if (_.#handlers.click) {
+			_.removeEventListener('click', _.#handlers.click);
+		}
 	}
 }
 
+// Register the custom elements
+// Note: dialog-backdrop must be defined BEFORE dialog-panel,
+// because dialog-panel's connectedCallback may create dialog-backdrop elements
+if (!customElements.get('dialog-backdrop')) {
+	customElements.define('dialog-backdrop', DialogBackdrop);
+}
 if (!customElements.get('dialog-panel')) {
 	customElements.define('dialog-panel', DialogPanel);
 }
-if (!customElements.get('dialog-overlay')) {
-	customElements.define('dialog-overlay', DialogOverlay);
-}
-if (!customElements.get('dialog-content')) {
-	customElements.define('dialog-content', DialogContent);
-}
 
-export { DialogContent, DialogOverlay, DialogPanel, DialogPanel as default };
+export { DialogBackdrop, DialogPanel };
 //# sourceMappingURL=dialog-panel.esm.js.map

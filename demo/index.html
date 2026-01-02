@@ -10,375 +10,421 @@
 
 		<style>
 			/* Demo-specific styles */
+			*,
+			*::before,
+			*::after {
+				box-sizing: border-box;
+			}
+
 			body {
-				font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+				font-family:
+					-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+					Oxygen, Ubuntu, sans-serif;
 				margin: 0;
 				padding: 0;
-				min-height: 200vh;
-				background-color: #f0f2f5;
+				min-height: 100vh;
+				background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 				color: #333;
 			}
 
-			.image-info-wrapper {
-				position: relative;
-				height: 100vh;
-				width: 100%;
-				overflow: hidden;
-			}
-
-			.background-image {
-				width: 100%;
-				height: 100%;
-				object-fit: cover;
-			}
-
-			.content-overlay {
-				position: absolute;
-				top: 0;
-				left: 0;
-				width: 100%;
-				height: 100%;
+			.hero {
+				min-height: 100vh;
 				display: flex;
 				flex-direction: column;
 				justify-content: center;
 				align-items: center;
-				background-color: rgba(0, 0, 0, 0.3);
 				color: white;
 				text-align: center;
-				padding: 20px;
-				box-sizing: border-box;
+				padding: 2rem;
 			}
 
-			.content-overlay h1 {
+			.hero h1 {
 				font-size: 3rem;
-				margin: 20px 0;
-				text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+				margin: 0 0 1rem;
+				text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 			}
 
-			.content-overlay p {
-				font-size: 1.2rem;
+			.hero p {
+				font-size: 1.25rem;
 				max-width: 600px;
-				text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+				margin: 0 0 2rem;
+				opacity: 0.9;
 			}
 
-			.content-section {
-				padding: 50px 20px;
-				max-width: 1200px;
-				margin: 0 auto;
-				min-height: 100vh;
+			.button-row {
+				display: flex;
+				gap: 1rem;
+				flex-wrap: wrap;
+				justify-content: center;
 			}
 
-			.content-section h2 {
-				font-size: 2rem;
-				margin-bottom: 20px;
-			}
-
-			.content-section p {
-				font-size: 1.1rem;
-				line-height: 1.6;
-				margin-bottom: 20px;
-			}
-
-			/* Custom dialog panel styles */
-			:root {
-				/* Custom overlay styling */
-				--dp-overlay-background: rgba(17, 25, 40, 0.6);
-				--dp-overlay-backdrop-filter: blur(4px) saturate(180%);
-
-				/* Custom content styling */
-				--dp-content-background: #ffffff;
-				--dp-content-border-radius: 12px;
-				--dp-content-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-
-				/* Animation timing */
-				--dp-transition-duration: 350ms;
-				--dp-transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
-			}
-
-			/* Dialog content internal styling */
-			dialog-content {
-				padding: 0;
-				width: min(500px, 90vw);
-				max-width: 100%;
-			}
-
-			.content {
-				padding: 24px;
-			}
-
-			.close-button {
-				position: absolute;
-				top: 16px;
-				right: 16px;
-				background: transparent;
+			.btn {
+				padding: 0.875rem 1.75rem;
+				font-size: 1rem;
+				font-weight: 600;
 				border: none;
-				font-size: 24px;
+				border-radius: 0.5rem;
+				cursor: pointer;
+				transition: all 0.2s ease;
+			}
+
+			.btn-primary {
+				background: white;
+				color: #667eea;
+			}
+
+			.btn-primary:hover {
+				transform: translateY(-2px);
+				box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+			}
+
+			.btn-secondary {
+				background: rgba(255, 255, 255, 0.2);
+				color: white;
+				border: 2px solid white;
+			}
+
+			.btn-secondary:hover {
+				background: rgba(255, 255, 255, 0.3);
+			}
+
+			/* Dialog content styles */
+			.dialog-content {
+				padding: 1.5rem;
+				border-radius: 0.5rem;
+				overflow: hidden;
+			}
+
+			.dialog-header {
+				display: flex;
+				justify-content: space-between;
+				align-items: flex-start;
+				margin-bottom: 1rem;
+			}
+
+			.dialog-header h2 {
+				margin: 0;
+				font-size: 1.5rem;
+			}
+
+			.close-btn {
+				background: none;
+				border: none;
+				font-size: 1.5rem;
 				cursor: pointer;
 				color: #666;
-				width: 32px;
-				height: 32px;
+				padding: 0;
+				width: 2rem;
+				height: 2rem;
 				border-radius: 50%;
 				display: flex;
 				align-items: center;
 				justify-content: center;
-				transition: background-color 0.2s;
 			}
 
-			.close-button:hover {
-				background-color: rgba(0, 0, 0, 0.05);
+			.close-btn:hover {
+				background: rgba(0, 0, 0, 0.05);
 			}
 
-			#dialog-title {
-				margin-top: 0;
-				margin-bottom: 16px;
-				color: #333;
-				font-weight: 600;
+			.dialog-body {
+				margin-bottom: 1.5rem;
+				line-height: 1.6;
 			}
 
-			.button-group {
+			.dialog-footer {
 				display: flex;
 				justify-content: flex-end;
-				margin-top: 24px;
+				gap: 0.75rem;
 			}
 
-			.trigger-button {
-				padding: 12px 28px;
-				background-color: #0077ff;
-				color: #fff;
-				border: none;
-				cursor: pointer;
-				font-size: 16px;
-				font-weight: 600;
-				border-radius: 6px;
-				transition: all 0.2s ease;
-				box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-				letter-spacing: 0.5px;
-				margin-bottom: 20px;
+			.dialog-footer .btn {
+				padding: 0.625rem 1.25rem;
 			}
 
-			.trigger-button:hover {
-				background-color: #0066db;
-				transform: translateY(-2px);
-				box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+			.btn-cancel {
+				background: #e5e7eb;
+				color: #374151;
 			}
 
-			.trigger-button:active {
-				transform: translateY(0);
-				box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+			.btn-cancel:hover {
+				background: #d1d5db;
 			}
 
-			/* Dialog button */
-			dialog-content .trigger-button {
-				margin-bottom: 0;
+			.btn-confirm {
+				background: #667eea;
+				color: white;
 			}
 
-			/* Event log styling */
+			.btn-confirm:hover {
+				background: #5a67d8;
+			}
+
+			.btn-danger {
+				background: #ef4444;
+				color: white;
+			}
+
+			.btn-danger:hover {
+				background: #dc2626;
+			}
+
+			/* Event log */
 			.event-log {
-				margin-top: 30px;
-				padding: 15px;
-				background-color: #f5f5f5;
-				border-radius: 8px;
-				box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+				background: white;
+				border-radius: 0.75rem;
+				padding: 1.5rem;
+				box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 			}
 
 			.event-log h3 {
-				margin-top: 0;
-				color: #333;
-				font-size: 1.2rem;
+				margin: 0 0 1rem;
+				font-size: 1.25rem;
 			}
 
 			.event-log ul {
 				margin: 0;
 				padding: 0;
 				list-style: none;
+				max-height: 300px;
+				overflow-y: auto;
 			}
 
 			.event-log li {
-				padding: 8px 12px;
-				margin-bottom: 8px;
-				background-color: #fff;
-				border-left: 4px solid #0077ff;
-				border-radius: 4px;
-				font-family: monospace;
-				font-size: 0.9rem;
-				box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-				transition: all 0.2s ease;
+				padding: 0.5rem 0.75rem;
+				margin-bottom: 0.5rem;
+				background: #f3f4f6;
+				border-left: 3px solid #667eea;
+				border-radius: 0.25rem;
+				font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+				font-size: 0.875rem;
 			}
 
 			.event-log li:last-child {
-				border-left-color: #ff6b6b;
-				font-weight: bold;
+				border-left-color: #10b981;
+				font-weight: 600;
+			}
+
+			/* Custom backdrop with noise texture */
+			dialog-backdrop {
+				background: rgba(0, 0, 0, 0.3) url('./bg-noise.png');
+				backdrop-filter: blur(5px);
 			}
 		</style>
 	</head>
 	<body>
-		<div class="image-info-wrapper">
-			<img
-				src="./cancun.jpg"
-				alt="Cancun beach view"
-				class="background-image" />
-			<div class="content-overlay">
-				<!-- Trigger Button -->
-				<button
-					class="trigger-button"
-					aria-haspopup="dialog"
-					aria-controls="demo-dialog"
-					aria-expanded="false">
+		<section class="hero">
+			<h1>Dialog Panel</h1>
+			<p>
+				A lightweight web component using native &lt;dialog&gt; with
+				state-driven animations. No focus-trap dependency needed.
+			</p>
+			<div class="button-row">
+				<button id="open-basic" class="btn btn-primary">
 					Open Dialog
 				</button>
-				<h1>Dialog Panel Demo</h1>
-				<p>Scroll down to see how body scroll locking works</p>
-			</div>
-		</div>
-
-		<div class="content-section">
-			<h2>Scroll Content</h2>
-			<p>
-				This content demonstrates how the page scrolling is locked
-				when the dialog is open.
-			</p>
-			<p>
-				When you open the dialog, the page will be frozen in place.
-				When you close it, you'll return to your exact scroll
-				position.
-			</p>
-		</div>
-
-		<!-- Dialog Panel Component -->
-		<dialog-panel
-			id="demo-dialog"
-			aria-modal="true"
-			aria-labelledby="dialog-title"
-			aria-describedby="dialog-description">
-			<dialog-content>
-				<button
-					aria-label="Close dialog"
-					class="close-button"
-					data-action-hide-dialog>
-					&times;
+				<button id="open-nested" class="btn btn-secondary">
+					Test Nested Dialogs
 				</button>
-				<div class="content">
-					<h2 id="dialog-title">Dialog Header</h2>
-					<p id="dialog-description">
-						This is a demonstration of the dialog panel component. You
-						can add your content here. The dialog is now properly
-						centered with a nice animation and backdrop blur effect.
-					</p>
-					<div class="button-group">
-						<button data-action-hide-dialog class="trigger-button">
-							Close Dialog
+				<button
+					id="block-close"
+					class="btn btn-secondary"
+					style="background: #f59e0b; border-color: #f59e0b">
+					Block Next Close
+				</button>
+			</div>
+
+			<div
+				class="event-log"
+				style="
+					margin-top: 2rem;
+					min-width: 300px;
+					max-width: 500px;
+					text-align: left;
+					color: #333;
+				">
+				<h3>Event Log</h3>
+				<ul id="log-list"></ul>
+			</div>
+		</section>
+
+		<!-- Basic Dialog (dialog-backdrop auto-created) -->
+		<dialog-panel id="basic-dialog">
+			<dialog aria-labelledby="basic-title">
+				<div class="dialog-content">
+					<div class="dialog-header">
+						<h2 id="basic-title">Welcome!</h2>
+						<button
+							class="close-btn"
+							data-action-hide-dialog
+							aria-label="Close">
+							&times;
+						</button>
+					</div>
+					<div class="dialog-body">
+						<p>
+							This dialog uses <code>&lt;dialog-backdrop&gt;</code>
+							for consistent cross-browser animations.
+						</p>
+						<p>
+							Try pressing <kbd>Escape</kbd> or clicking the backdrop
+							to close.
+						</p>
+					</div>
+					<div class="dialog-footer">
+						<button class="btn btn-confirm" data-action-hide-dialog>
+							Got it!
 						</button>
 					</div>
 				</div>
-			</dialog-content>
+			</dialog>
+		</dialog-panel>
+
+		<!-- Outer Dialog (for nested test) -->
+		<dialog-panel id="outer-dialog">
+			<dialog aria-labelledby="outer-title">
+				<div class="dialog-content">
+					<div class="dialog-header">
+						<h2 id="outer-title">Outer Dialog</h2>
+						<button
+							class="close-btn"
+							data-action-hide-dialog
+							aria-label="Close">
+							&times;
+						</button>
+					</div>
+					<div class="dialog-body">
+						<p>
+							This is the <strong>outer</strong> dialog. Click the
+							button below to open a nested dialog on top.
+						</p>
+						<p>
+							The nested dialog's backdrop should appear
+							<strong>above</strong> this dialog.
+						</p>
+					</div>
+					<div class="dialog-footer">
+						<button class="btn btn-cancel" data-action-hide-dialog>
+							Close
+						</button>
+						<button class="btn btn-confirm" id="open-inner">
+							Open Inner Dialog
+						</button>
+					</div>
+				</div>
+
+				<!-- Inner Dialog (nested) -->
+				<dialog-panel id="inner-dialog">
+					<dialog aria-labelledby="inner-title">
+						<div class="dialog-content">
+							<div class="dialog-header">
+								<h2 id="inner-title">Inner Dialog</h2>
+								<button
+									class="close-btn"
+									data-action-hide-dialog
+									aria-label="Close">
+									&times;
+								</button>
+							</div>
+							<div class="dialog-body">
+								<p>
+									This is the <strong>inner</strong> (nested) dialog.
+								</p>
+								<p>
+									Does the backdrop correctly cover the outer dialog?
+								</p>
+							</div>
+							<div class="dialog-footer">
+								<button
+									class="btn btn-confirm"
+									data-action-hide-dialog>
+									Close Inner
+								</button>
+							</div>
+						</div>
+					</dialog>
+				</dialog-panel>
+			</dialog>
 		</dialog-panel>
 
 		<script type="module">
-			// Import the dialog panel component
 			import './dialog-panel.esm.js';
 
-			// Example of using events
-			const dialog = document.getElementById('demo-dialog');
-			const eventLog = document.createElement('div');
-			eventLog.classList.add('event-log');
-			eventLog.innerHTML = '<h3>Event Log:</h3><ul></ul>';
-			document
-				.querySelector('.content-section')
-				.appendChild(eventLog);
+			const basicDialog = document.getElementById('basic-dialog');
+			const outerDialog = document.getElementById('outer-dialog');
+			const innerDialog = document.getElementById('inner-dialog');
+			const logList = document.getElementById('log-list');
+			const blockCloseBtn = document.getElementById('block-close');
 
-			const logEvent = (eventName, detail) => {
-				const list = eventLog.querySelector('ul');
-				const item = document.createElement('li');
-				item.textContent = `${eventName} at ${new Date().toLocaleTimeString()}`;
-				if (detail && detail.triggerElement) {
-					item.textContent += ` (triggered by ${detail.triggerElement.tagName})`;
+			let blockNextClose = false;
+
+			// Trigger buttons
+			document
+				.getElementById('open-basic')
+				.addEventListener('click', (e) => {
+					basicDialog.show(e.target);
+				});
+
+			document
+				.getElementById('open-nested')
+				.addEventListener('click', (e) => {
+					outerDialog.show(e.target);
+				});
+
+			document
+				.getElementById('open-inner')
+				.addEventListener('click', (e) => {
+					innerDialog.show(e.target);
+				});
+
+			// Block close button
+			blockCloseBtn.addEventListener('click', () => {
+				blockNextClose = true;
+				blockCloseBtn.textContent = 'Will Block Next Close!';
+				blockCloseBtn.style.background = '#ef4444';
+			});
+
+			// Event logging
+			function logEvent(eventName, detail) {
+				const li = document.createElement('li');
+				const time = new Date().toLocaleTimeString();
+				let text = `[${time}] ${eventName}`;
+
+				if (detail.result) {
+					text += ` (result: ${detail.result})`;
 				}
-				list.appendChild(item);
 
-				// Limit to last 10 events
-				if (list.children.length > 10) {
-					list.removeChild(list.firstChild);
+				li.textContent = text;
+				logList.appendChild(li);
+
+				// Keep only last 15 events
+				while (logList.children.length > 15) {
+					logList.removeChild(logList.firstChild);
 				}
-			};
 
-			// Listen for all dialog events
-			dialog.addEventListener('beforeShow', (e) => {
-				logEvent('beforeShow', e.detail);
-			});
+				// Scroll to bottom
+				logList.scrollTop = logList.scrollHeight;
+			}
 
-			dialog.addEventListener('show', (e) => {
-				logEvent('show', e.detail);
-			});
-
-			dialog.addEventListener('beforeHide', (e) => {
-				logEvent('beforeHide', e.detail);
-			});
-
-			dialog.addEventListener('hide', (e) => {
-				logEvent('hide', e.detail);
-			});
-
-			dialog.addEventListener('afterHide', (e) => {
-				logEvent('afterHide', e.detail);
-			});
-
-			// Add confirmation button to demonstrate preventDefault
-			const confirmBtn = document.createElement('button');
-			confirmBtn.textContent = 'Open Dialog with Confirmation';
-			confirmBtn.className = 'trigger-button';
-			confirmBtn.style.backgroundColor = '#ff6b6b';
-			confirmBtn.style.marginLeft = '20px';
-
-			document
-				.querySelector('.content-section')
-				.appendChild(confirmBtn);
-
-			confirmBtn.addEventListener('click', () => {
-				dialog.show(confirmBtn);
-			});
-
-			// Create a temporary flag to demonstrate preventing dialog close
-			let preventCloseOnce = false;
-			const preventCloseBtn = document.createElement('button');
-			preventCloseBtn.textContent = 'Prevent Next Close';
-			preventCloseBtn.className = 'trigger-button';
-			preventCloseBtn.style.backgroundColor = '#ff9e5e';
-
-			document
-				.querySelector('.content-section')
-				.appendChild(preventCloseBtn);
-
-			preventCloseBtn.addEventListener('click', () => {
-				preventCloseOnce = true;
-				alert(
-					'The next attempt to close the dialog will be prevented!'
+			// Listen to all events on all dialogs
+			[basicDialog, outerDialog, innerDialog].forEach((dialog) => {
+				['beforeShow', 'shown', 'beforeHide', 'hidden'].forEach(
+					(eventName) => {
+						dialog.addEventListener(eventName, (e) => {
+							logEvent(eventName, e.detail);
+						});
+					}
 				);
-			});
 
-			// Example of preventing dialog from closing
-			dialog.addEventListener('beforeHide', (e) => {
-				if (preventCloseOnce) {
-					e.preventDefault();
-					preventCloseOnce = false;
-
-					// Show a message inside the dialog
-					const message = document.createElement('div');
-					message.className = 'prevention-message';
-					message.innerHTML =
-						'<p>Close prevented! Try closing again.</p>';
-					message.style.padding = '10px';
-					message.style.margin = '10px 0';
-					message.style.backgroundColor = '#ffeeee';
-					message.style.borderRadius = '4px';
-
-					const content = dialog.querySelector('.content');
-					content.appendChild(message);
-
-					// Remove the message after 2 seconds
-					setTimeout(() => {
-						message.remove();
-					}, 2000);
-				}
+				// Block close handler
+				dialog.addEventListener('beforeHide', (e) => {
+					if (blockNextClose) {
+						e.preventDefault();
+						blockNextClose = false;
+						blockCloseBtn.textContent = 'Block Next Close';
+						blockCloseBtn.style.background = '#f59e0b';
+						logEvent('beforeHide (BLOCKED)', e.detail);
+					}
+				});
 			});
 		</script>
 	</body>

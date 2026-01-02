@@ -1,17 +1,15 @@
-# Dialog Panel Web Component
+# Dialog Panel
 
-A lightweight, customizable Web Component for creating accessible modal dialogs. Ideal for dialogs, alerts, cart panels, or content panels with smooth animations and accessibility features.
-
-[**Live Demo**](https://magic-spells.github.io/dialog-panel/demo/)
+A lightweight web component wrapper for native `<dialog>` elements with state-driven animations.
 
 ## Features
 
-- No dependencies
-- Lightweight
-- Follows accessibility best practices with proper ARIA attributes
-- Smooth animations
-- Focus management and keyboard navigation
-- WAI-ARIA compliant modal dialog behavior
+- **Zero dependencies** - Uses native `<dialog>` for focus trapping and accessibility
+- **Lightweight** - ~3.4kb minified
+- **State-driven animations** - CSS transitions based on `state` attribute
+- **Cross-browser** - Custom `<dialog-backdrop>` for consistent animations (including Firefox)
+- **Accessible** - Native dialog handles focus trap, escape key, and ARIA
+- **Nested dialogs** - Proper stacking and event isolation
 
 ## Installation
 
@@ -20,172 +18,221 @@ npm install @magic-spells/dialog-panel
 ```
 
 ```javascript
-// Add to your JavaScript file
+// Import for side effects (registers custom elements)
 import '@magic-spells/dialog-panel';
 ```
 
-Or include directly in your HTML:
+Or include directly in HTML:
 
 ```html
 <script src="https://unpkg.com/@magic-spells/dialog-panel"></script>
+<link rel="stylesheet" href="https://unpkg.com/@magic-spells/dialog-panel/css/min" />
 ```
 
 ## Usage
 
 ```html
-<button
-	id="show-dialog-button"
-	aria-haspopup="dialog"
-	aria-controls="demo-dialog"
-	aria-expanded="false">
-	Open Dialog
-</button>
+<button id="open-btn">Open Dialog</button>
 
-<dialog-panel
-	id="demo-dialog"
-	role="dialog"
-	aria-modal="true"
-	aria-labelledby="dialog-title"
-	aria-describedby="dialog-description"
-	aria-hidden="true">
-	<dialog-overlay></dialog-overlay>
-	<dialog-content>
-		<button aria-label="Close dialog" data-action-hide-dialog>
-			&times;
-		</button>
-		<div>
-			<h2 id="dialog-title">Dialog Title</h2>
-			<p id="dialog-description">
-				This is a demonstration of the dialog panel component. Add
-				your content here.
-			</p>
-		</div>
-	</dialog-content>
+<dialog-panel id="my-dialog">
+  <dialog aria-labelledby="dialog-title">
+    <div class="dialog-content">
+      <h2 id="dialog-title">Hello!</h2>
+      <p>This is a modal dialog.</p>
+      <button data-action-hide-dialog>Close</button>
+    </div>
+  </dialog>
 </dialog-panel>
 
 <script>
-	const button = document.getElementById('show-dialog-button');
-	const dialog = document.getElementById('demo-dialog');
-	button.addEventListener('click', () => dialog.show());
+  const dialog = document.getElementById('my-dialog');
+  document.getElementById('open-btn').addEventListener('click', (e) => {
+    dialog.show(e.target);
+  });
 </script>
 ```
 
 ## How It Works
 
-- The dialog is initially hidden (`aria-hidden="true"`)
-- Clicking the button triggers the `show()` method, making the dialog visible
-- When opened, sets `aria-modal="true"` to indicate modal behavior
-- Clicking the overlay or a close button (`data-action-hide-dialog`) triggers the `hide()` method
-- Keyboard focus is automatically trapped within the dialog when open
-- Pressing ESC closes the dialog
-- Focus returns to the trigger button when closed
+1. Wrap a native `<dialog>` element inside `<dialog-panel>`
+2. Call `show(triggerElement)` to open with animation
+3. The `state` attribute transitions: `hidden` → `showing` → `shown`
+4. Close via:
+   - Clicking backdrop
+   - Pressing Escape
+   - Clicking any element with `data-action-hide-dialog`
+   - Calling `hide()`
+5. The `state` attribute transitions: `shown` → `hiding` → `hidden`
+6. Focus returns to the trigger element
 
-## Customization
+## State Machine
 
-### Styling
+```
+hidden → showing → shown → hiding → hidden
+```
 
-#### Using CSS Custom Properties
-
-You can style the Dialog Panel by overriding the CSS custom properties:
+The `state` attribute on `<dialog-panel>` drives all CSS animations:
 
 ```css
-:root {
-	/* Layout */
-	--dp-panel-z-index: 100;
-
-	/* Overlay */
-	--dp-overlay-background: rgba(0, 0, 0, 0.7);
-	--dp-overlay-backdrop-filter: blur(5px) saturate(120%);
-
-	/* Content */
-	--dp-content-background: #f8f8f8;
-
-	/* Animation */
-	--dp-transition-duration: 400ms;
-	--dp-transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
-}
+dialog-panel[state='showing'] > dialog { /* entering */ }
+dialog-panel[state='shown'] > dialog { /* fully visible */ }
+dialog-panel[state='hiding'] > dialog { /* exiting */ }
+dialog-panel[state='hidden'] > dialog { /* hidden */ }
 ```
 
-#### Using SCSS
+## API
 
-For more advanced customization, you can import the SCSS directly:
+### Methods
 
-```scss
-// Option 1: Import the compiled CSS
-@import '@magic-spells/dialog-panel/css';
+| Method | Description |
+|--------|-------------|
+| `show(triggerEl?)` | Opens the dialog. Pass trigger element for focus return. Returns `false` if cancelled. |
+| `hide(triggerEl?)` | Closes the dialog. Returns `false` if cancelled. |
 
-// Option 2: Import the SCSS and override variables
-@use '@magic-spells/dialog-panel/scss' with (
-	$overlay-background: rgba(0, 0, 0, 0.7),
-	$overlay-backdrop-filter: blur(5px) saturate(120%),
-	$content-background: #f8f8f8,
-	$transition-duration: 400ms,
-	$transition-timing: cubic-bezier(0.4, 0, 0.2, 1)
-);
+### Properties (read-only)
 
-// Option 3: Import specific parts
-@use '@magic-spells/dialog-panel/scss/variables' with (
-	$panel-z-index: 100
-);
-@use '@magic-spells/dialog-panel/scss/dialog-panel';
-```
+| Property | Type | Description |
+|----------|------|-------------|
+| `state` | `string` | Current state: `'hidden'`, `'showing'`, `'shown'`, `'hiding'` |
+| `dialog` | `HTMLDialogElement` | Reference to inner `<dialog>` |
+| `isOpen` | `boolean` | `true` if `showing` or `shown` |
+| `triggerElement` | `HTMLElement \| null` | Element that triggered the current action |
 
-#### Direct Element Styling
+### Events
 
-You can also style the elements directly:
+| Event | Cancelable | Description |
+|-------|------------|-------------|
+| `beforeShow` | Yes | Fired before showing. Call `preventDefault()` to cancel. |
+| `shown` | No | Fired after show animation completes. |
+| `beforeHide` | Yes | Fired before hiding. Call `preventDefault()` to cancel. |
+| `hidden` | No | Fired after hide animation completes. |
 
-```css
-dialog-panel {
-	/* Customize your dialog panel */
-}
+Event `detail` includes:
+- `triggerElement` - Element that triggered the action
+- `result` - Value from `data-result` attribute (if any)
+- `state` - Current state
 
-dialog-overlay {
-	background-color: rgba(0, 0, 0, 0.5);
-}
-```
+### Data Attributes
 
-### JavaScript API
+| Attribute | Description |
+|-----------|-------------|
+| `data-action-hide-dialog` | Clicking this element closes the dialog |
+| `data-result` | Value passed to `hidden` event when this element triggers close |
 
-#### Methods
+## Styling
 
-- `show(triggerEl)`: Opens the dialog panel. Returns false if the action was prevented.
-- `hide()`: Closes the dialog panel. Returns false if the action was prevented.
+### Default CSS
 
-#### Events
-
-The dialog panel emits the following events that you can listen for:
-
-- `beforeShow`: Fired before the dialog starts to show. Cancelable - you can call `preventDefault()` to prevent the dialog from opening.
-- `show`: Fired when the dialog has been shown (after transitions).
-- `beforeHide`: Fired before the dialog starts to hide. Cancelable - you can call `preventDefault()` to prevent the dialog from closing.
-- `hide`: Fired when the dialog has started hiding (transition begins).
-- `afterHide`: Fired when the dialog has completed its hide transition.
-
-Each event provides a `detail` object with the `triggerElement` that initiated the action (if any).
-
-Example usage:
+Import the default styles:
 
 ```javascript
-const dialog = document.getElementById('my-dialog');
+import '@magic-spells/dialog-panel';
+import '@magic-spells/dialog-panel/css';
+```
 
-// Prevent dialog from closing based on some condition
+Or in HTML:
+
+```html
+<link rel="stylesheet" href="https://unpkg.com/@magic-spells/dialog-panel/css/min" />
+```
+
+### Custom Styling
+
+Override styles using the `state` attribute:
+
+```css
+/* Custom backdrop */
+dialog-backdrop {
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(5px);
+}
+
+/* Custom dialog appearance */
+dialog-panel > dialog {
+  border-radius: 1rem;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+}
+
+/* Custom animations */
+dialog-panel[state='shown'] > dialog {
+  opacity: 1;
+  transform: scale(1);
+  transition: all 0.3s ease-out;
+}
+
+dialog-panel[state='hiding'] > dialog {
+  opacity: 0;
+  transform: scale(0.95);
+  transition: all 0.2s ease-in;
+}
+```
+
+## Nested Dialogs
+
+Dialogs can be nested inside other dialogs:
+
+```html
+<dialog-panel id="outer">
+  <dialog>
+    <p>Outer dialog content</p>
+    <button id="open-inner">Open Inner</button>
+
+    <dialog-panel id="inner">
+      <dialog>
+        <p>Inner dialog content</p>
+        <button data-action-hide-dialog>Close Inner</button>
+      </dialog>
+    </dialog-panel>
+  </dialog>
+</dialog-panel>
+```
+
+Each dialog manages its own backdrop and events independently.
+
+## Dialog Backdrop
+
+The `<dialog-backdrop>` element is auto-created if not present. It provides:
+
+- Consistent cross-browser animations (native `::backdrop` doesn't animate in Firefox)
+- Click-to-close functionality
+- Custom styling support
+
+## Preventing Close
+
+Use `beforeHide` to prevent closing:
+
+```javascript
 dialog.addEventListener('beforeHide', (e) => {
-  if (someFormIsUnsaved) {
-    e.preventDefault(); // Prevents the dialog from closing
-    // Show a confirmation message instead
+  if (formHasUnsavedChanges) {
+    e.preventDefault();
+    showConfirmation();
   }
 });
+```
 
-// Do something after the dialog is fully hidden
-dialog.addEventListener('afterHide', () => {
-  console.log('Dialog is now fully hidden');
-  // Clean up or reset form fields, etc.
+## Result Values
+
+Track which button closed the dialog:
+
+```html
+<button data-action-hide-dialog data-result="save">Save</button>
+<button data-action-hide-dialog data-result="cancel">Cancel</button>
+```
+
+```javascript
+dialog.addEventListener('hidden', (e) => {
+  if (e.detail.result === 'save') {
+    saveData();
+  }
 });
 ```
 
 ## Browser Support
 
-This component works in all modern browsers that support Web Components.
+Modern browsers with support for:
+- Custom Elements v1
+- Native `<dialog>` element
+- CSS `:has()` selector
 
 ## License
 

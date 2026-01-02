@@ -1,7 +1,7 @@
 {
   "name": "@magic-spells/dialog-panel",
-  "version": "0.3.0",
-  "description": "A lightweight, customizable Dialog Panel web component for creating accessible and responsive modal dialogs.",
+  "version": "1.0.0",
+  "description": "A lightweight web component wrapper for native <dialog> elements with state-driven animations.",
   "author": "Cory Schulz",
   "license": "MIT",
   "type": "module",
@@ -9,7 +9,6 @@
   "module": "dist/dialog-panel.esm.js",
   "unpkg": "dist/dialog-panel.min.js",
   "style": "dist/dialog-panel.min.css",
-  "sass": "dist/dialog-panel.scss",
   "exports": {
     ".": {
       "import": "./dist/dialog-panel.esm.js",
@@ -17,9 +16,7 @@
       "default": "./dist/dialog-panel.esm.js"
     },
     "./css": "./dist/dialog-panel.css",
-    "./css/min": "./dist/dialog-panel.min.css",
-    "./scss": "./dist/dialog-panel.scss",
-    "./scss/*": "./dist/scss/*"
+    "./css/min": "./dist/dialog-panel.min.css"
   },
   "sideEffects": true,
   "repository": {
@@ -31,15 +28,13 @@
     "url": "https://github.com/magic-spells/dialog-panel/issues"
   },
   "keywords": [
-    "dialog-panel",
-    "modal-dialog",
+    "dialog",
+    "modal",
     "web-components",
+    "native-dialog",
     "accessibility",
     "a11y",
-    "keyboard-navigation",
-    "custom-elements",
-    "modal",
-    "dialog"
+    "custom-elements"
   ],
   "files": [
     "dist/",
@@ -72,10 +67,6 @@
     "rollup": "^3.0.0",
     "rollup-plugin-copy": "^3.5.0",
     "rollup-plugin-postcss": "^4.0.2",
-    "rollup-plugin-serve": "^1.1.1",
-    "sass": "^1.86.3"
-  },
-  "dependencies": {
-    "@magic-spells/focus-trap": "^1.0.7"
+    "rollup-plugin-serve": "^1.1.1"
   }
 }

@@ -1,4 +1,6 @@
 **/*.min.js
 **/*.min.css
+**/*.md
 assets/
 node_modules/
+demo/
