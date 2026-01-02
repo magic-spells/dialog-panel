@@ -2,6 +2,8 @@
 
 A lightweight web component wrapper for native `<dialog>` elements with state-driven animations.
 
+[**Live Demo**](https://magic-spells.github.io/dialog-panel/demo/)
+
 ## Features
 
 - **Zero dependencies** - Uses native `<dialog>` for focus trapping and accessibility
