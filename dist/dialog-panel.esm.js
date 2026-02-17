@@ -33,7 +33,7 @@ class DialogPanel extends HTMLElement {
 	#pendingTimeout = null;
 
 	// Fallback timeout for transitionend (in ms)
-	static TRANSITION_FALLBACK_TIMEOUT = 500;
+	static TRANSITION_FALLBACK_TIMEOUT = 700;
 
 	connectedCallback() {
 		const _ = this;

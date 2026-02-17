@@ -1,6 +1,6 @@
 {
   "name": "@magic-spells/dialog-panel",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A lightweight web component wrapper for native <dialog> elements with state-driven animations.",
   "author": "Cory Schulz",
   "license": "MIT",
