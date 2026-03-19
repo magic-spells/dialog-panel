@@ -1,431 +1,1316 @@
 <!doctype html>
 <html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta
-			name="viewport"
-			content="width=device-width, initial-scale=1.0" />
-		<title>Dialog Panel Demo</title>
-		<link rel="stylesheet" href="./dialog-panel.min.css" />
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0" />
+    <title>Dialog Panel -- @magic-spells</title>
+    <link rel="stylesheet" href="./dialog-panel.min.css" />
 
-		<style>
-			/* Demo-specific styles */
-			*,
-			*::before,
-			*::after {
-				box-sizing: border-box;
-			}
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      rel="preconnect"
+      href="https://fonts.gstatic.com"
+      crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300;1,9..40,400&family=DM+Mono:wght@300;400&display=swap"
+      rel="stylesheet" />
 
-			body {
-				font-family:
-					-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-					Oxygen, Ubuntu, sans-serif;
-				margin: 0;
-				padding: 0;
-				min-height: 100vh;
-				background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-				color: #333;
-			}
+    <style>
+      /* ------------------------------------------------
+         Base & Variables
+      ------------------------------------------------ */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
 
-			.hero {
-				min-height: 100vh;
-				display: flex;
-				flex-direction: column;
-				justify-content: center;
-				align-items: center;
-				color: white;
-				text-align: center;
-				padding: 2rem;
-			}
+      dialog {
+        margin: auto;
+      }
 
-			.hero h1 {
-				font-size: 3rem;
-				margin: 0 0 1rem;
-				text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-			}
+      :root {
+        --bg: #0c0c0d;
+        --surface: #161618;
+        --surface-raised: #1e1e21;
+        --border: #2a2a2e;
+        --border-accent: #3a3a3f;
+        --text: #e8e4de;
+        --text-dim: #8a8680;
+        --accent: #d4a24e;
+        --accent-glow: rgba(212, 162, 78, 0.15);
+        --coral: #c75d4a;
+        --teal: #4a9e8e;
+        --lavender: #8b7ec8;
+        --font-display: 'Instrument Serif', Georgia, serif;
+        --font-body: 'DM Sans', system-ui, sans-serif;
+        --font-mono: 'DM Mono', 'SF Mono', monospace;
+        --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+      }
 
-			.hero p {
-				font-size: 1.25rem;
-				max-width: 600px;
-				margin: 0 0 2rem;
-				opacity: 0.9;
-			}
+      html {
+        font-size: 16px;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
 
-			.button-row {
-				display: flex;
-				gap: 1rem;
-				flex-wrap: wrap;
-				justify-content: center;
-			}
+      body {
+        font-family: var(--font-body);
+        font-weight: 300;
+        color: var(--text);
+        background: var(--bg);
+        line-height: 1.6;
+        min-height: 100vh;
+      }
 
-			.btn {
-				padding: 0.875rem 1.75rem;
-				font-size: 1rem;
-				font-weight: 600;
-				border: none;
-				border-radius: 0.5rem;
-				cursor: pointer;
-				transition: all 0.2s ease;
-			}
+      /* Grain overlay */
+      body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        z-index: 99999;
+        pointer-events: none;
+        opacity: 0.03;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        background-repeat: repeat;
+        background-size: 200px;
+      }
 
-			.btn-primary {
-				background: white;
-				color: #667eea;
-			}
+      /* ------------------------------------------------
+         Layout
+      ------------------------------------------------ */
+      .page {
+        max-width: 840px;
+        margin: 0 auto;
+        padding: 4rem 2rem 6rem;
+      }
 
-			.btn-primary:hover {
-				transform: translateY(-2px);
-				box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-			}
+      /* ------------------------------------------------
+         Hero
+      ------------------------------------------------ */
+      .hero {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding-bottom: 4rem;
+        animation: fadeUp 0.8s var(--ease-out) backwards;
+        position: relative;
+      }
 
-			.btn-secondary {
-				background: rgba(255, 255, 255, 0.2);
-				color: white;
-				border: 2px solid white;
-			}
+      .hero::before {
+        content: '';
+        position: absolute;
+        top: -120px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 600px;
+        height: 600px;
+        border-radius: 50%;
+        background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+        pointer-events: none;
+        z-index: -1;
+      }
 
-			.btn-secondary:hover {
-				background: rgba(255, 255, 255, 0.3);
-			}
+      .hero-badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 400;
+        letter-spacing: 0.08em;
+        color: var(--accent);
+        border: 1px solid var(--accent);
+        border-radius: 100px;
+        padding: 0.3rem 1rem;
+        margin-bottom: 1.5rem;
+        background: var(--accent-glow);
+        text-decoration: none;
+        transition: border-color 0.3s ease, color 0.3s ease;
+      }
 
-			/* Dialog content styles */
-			.dialog-content {
-				padding: 1.5rem;
-				border-radius: 0.5rem;
-				overflow: hidden;
-			}
+      .hero-badge:hover {
+        border-color: var(--accent);
+        color: var(--text);
+      }
 
-			.dialog-header {
-				display: flex;
-				justify-content: space-between;
-				align-items: flex-start;
-				margin-bottom: 1rem;
-			}
+      .hero h1 {
+        font-family: var(--font-display);
+        font-size: clamp(2.8rem, 6vw, 4.2rem);
+        font-weight: 400;
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+        margin-bottom: 1.25rem;
+      }
 
-			.dialog-header h2 {
-				margin: 0;
-				font-size: 1.5rem;
-			}
+      .hero h1 em {
+        font-style: italic;
+        color: var(--accent);
+      }
 
-			.close-btn {
-				background: none;
-				border: none;
-				font-size: 1.5rem;
-				cursor: pointer;
-				color: #666;
-				padding: 0;
-				width: 2rem;
-				height: 2rem;
-				border-radius: 50%;
-				display: flex;
-				align-items: center;
-				justify-content: center;
-			}
+      .hero p {
+        font-size: 1.1rem;
+        color: var(--text-dim);
+        max-width: 540px;
+        line-height: 1.7;
+      }
 
-			.close-btn:hover {
-				background: rgba(0, 0, 0, 0.05);
-			}
+      .hero-line {
+        width: 1px;
+        height: 64px;
+        margin-top: 2.5rem;
+        background: linear-gradient(to bottom, var(--accent), transparent);
+      }
 
-			.dialog-body {
-				margin-bottom: 1.5rem;
-				line-height: 1.6;
-			}
+      /* ------------------------------------------------
+         Install banner
+      ------------------------------------------------ */
+      .install-banner {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 2.5rem;
+        padding: 1.25rem 2rem;
+        margin-bottom: 4rem;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        animation: fadeUp 0.8s var(--ease-out) 0.2s backwards;
+      }
 
-			.dialog-footer {
-				display: flex;
-				justify-content: flex-end;
-				gap: 0.75rem;
-			}
+      .install-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
 
-			.dialog-footer .btn {
-				padding: 0.625rem 1.25rem;
-			}
+      .install-label {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 400;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--text-dim);
+      }
 
-			.btn-cancel {
-				background: #e5e7eb;
-				color: #374151;
-			}
+      .install-value {
+        font-family: var(--font-mono);
+        font-size: 0.85rem;
+        color: var(--text);
+        cursor: copy;
+        padding: 0.3rem 0.75rem;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        transition: border-color 0.2s;
+      }
 
-			.btn-cancel:hover {
-				background: #d1d5db;
-			}
+      .install-value:hover {
+        border-color: var(--accent);
+      }
 
-			.btn-confirm {
-				background: #667eea;
-				color: white;
-			}
+      .install-size {
+        font-family: var(--font-mono);
+        font-size: 0.85rem;
+        font-weight: 400;
+        color: var(--accent);
+      }
 
-			.btn-confirm:hover {
-				background: #5a67d8;
-			}
+      /* ------------------------------------------------
+         Sections
+      ------------------------------------------------ */
+      .example {
+        margin-bottom: 5rem;
+        animation: fadeUp 0.8s var(--ease-out) backwards;
+      }
 
-			.btn-danger {
-				background: #ef4444;
-				color: white;
-			}
+      .example h2 {
+        font-family: var(--font-display);
+        font-size: 1.8rem;
+        font-weight: 400;
+        margin-bottom: 0.5rem;
+      }
 
-			.btn-danger:hover {
-				background: #dc2626;
-			}
+      .example > p {
+        color: var(--text-dim);
+        font-size: 0.95rem;
+        margin-bottom: 2rem;
+        max-width: 520px;
+      }
 
-			/* Event log */
-			.event-log {
-				background: white;
-				border-radius: 0.75rem;
-				padding: 1.5rem;
-				box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-			}
+      code {
+        font-family: var(--font-mono);
+        font-size: 0.82em;
+        color: var(--accent);
+      }
 
-			.event-log h3 {
-				margin: 0 0 1rem;
-				font-size: 1.25rem;
-			}
+      /* ------------------------------------------------
+         Code block
+      ------------------------------------------------ */
+      .code-block {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 1.25rem 1.5rem;
+        overflow-x: auto;
+        margin-top: 1.5rem;
+      }
 
-			.event-log ul {
-				margin: 0;
-				padding: 0;
-				list-style: none;
-				max-height: 300px;
-				overflow-y: auto;
-			}
+      .code-block code {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        font-weight: 300;
+        line-height: 1.8;
+        color: var(--text-dim);
+        white-space: pre;
+      }
 
-			.event-log li {
-				padding: 0.5rem 0.75rem;
-				margin-bottom: 0.5rem;
-				background: #f3f4f6;
-				border-left: 3px solid #667eea;
-				border-radius: 0.25rem;
-				font-family: 'SF Mono', Monaco, 'Courier New', monospace;
-				font-size: 0.875rem;
-			}
+      .code-block .hl-tag { color: var(--accent); }
+      .code-block .hl-attr { color: var(--lavender); }
+      .code-block .hl-value { color: var(--coral); }
+      .code-block .hl-comment { color: #555; font-style: italic; }
+      .code-block .hl-kw { color: var(--accent); }
+      .code-block .hl-str { color: var(--teal); }
+      .code-block .hl-fn { color: var(--lavender); }
 
-			.event-log li:last-child {
-				border-left-color: #10b981;
-				font-weight: 600;
-			}
+      /* ------------------------------------------------
+         Demo surfaces
+      ------------------------------------------------ */
+      .demo-surface {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 2rem;
+        position: relative;
+      }
 
-			/* Custom backdrop with noise texture */
-			dialog-backdrop {
-				background: rgba(0, 0, 0, 0.3) url('./bg-noise.png');
-				backdrop-filter: blur(5px);
-			}
-		</style>
-	</head>
-	<body>
-		<section class="hero">
-			<h1>Dialog Panel</h1>
-			<p>
-				A lightweight web component using native &lt;dialog&gt; with
-				state-driven animations. No focus-trap dependency needed.
-			</p>
-			<div class="button-row">
-				<button id="open-basic" class="btn btn-primary">
-					Open Dialog
-				</button>
-				<button id="open-nested" class="btn btn-secondary">
-					Test Nested Dialogs
-				</button>
-				<button
-					id="block-close"
-					class="btn btn-secondary"
-					style="background: #f59e0b; border-color: #f59e0b">
-					Block Next Close
-				</button>
-			</div>
+      .demo-surface-label {
+        font-family: var(--font-mono);
+        font-size: 0.65rem;
+        font-weight: 400;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--text-dim);
+        margin-bottom: 1.25rem;
+      }
 
-			<div
-				class="event-log"
-				style="
-					margin-top: 2rem;
-					min-width: 300px;
-					max-width: 500px;
-					text-align: left;
-					color: #333;
-				">
-				<h3>Event Log</h3>
-				<ul id="log-list"></ul>
-			</div>
-		</section>
+      /* ------------------------------------------------
+         Buttons
+      ------------------------------------------------ */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.75rem 1.5rem;
+        font-family: var(--font-body);
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: var(--bg);
+        background: var(--accent);
+        border: none;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: all 0.25s var(--ease-out);
+      }
 
-		<!-- Basic Dialog (dialog-backdrop auto-created) -->
-		<dialog-panel id="basic-dialog">
-			<dialog aria-labelledby="basic-title">
-				<div class="dialog-content">
-					<div class="dialog-header">
-						<h2 id="basic-title">Welcome!</h2>
-						<button
-							class="close-btn"
-							data-action-hide-dialog
-							aria-label="Close">
-							&times;
-						</button>
-					</div>
-					<div class="dialog-body">
-						<p>
-							This dialog uses <code>&lt;dialog-backdrop&gt;</code>
-							for consistent cross-browser animations.
-						</p>
-						<p>
-							Try pressing <kbd>Escape</kbd> or clicking the backdrop
-							to close.
-						</p>
-					</div>
-					<div class="dialog-footer">
-						<button class="btn btn-confirm" data-action-hide-dialog>
-							Got it!
-						</button>
-					</div>
-				</div>
-			</dialog>
-		</dialog-panel>
+      .btn:hover {
+        background: #e0b05e;
+        box-shadow: 0 2px 12px rgba(212, 162, 78, 0.3);
+      }
 
-		<!-- Outer Dialog (for nested test) -->
-		<dialog-panel id="outer-dialog">
-			<dialog aria-labelledby="outer-title">
-				<div class="dialog-content">
-					<div class="dialog-header">
-						<h2 id="outer-title">Outer Dialog</h2>
-						<button
-							class="close-btn"
-							data-action-hide-dialog
-							aria-label="Close">
-							&times;
-						</button>
-					</div>
-					<div class="dialog-body">
-						<p>
-							This is the <strong>outer</strong> dialog. Click the
-							button below to open a nested dialog on top.
-						</p>
-						<p>
-							The nested dialog's backdrop should appear
-							<strong>above</strong> this dialog.
-						</p>
-					</div>
-					<div class="dialog-footer">
-						<button class="btn btn-cancel" data-action-hide-dialog>
-							Close
-						</button>
-						<button class="btn btn-confirm" id="open-inner">
-							Open Inner Dialog
-						</button>
-					</div>
-				</div>
+      .btn-ghost {
+        color: var(--text-dim);
+        background: transparent;
+        border: 1px solid var(--border);
+      }
 
-				<!-- Inner Dialog (nested) -->
-				<dialog-panel id="inner-dialog">
-					<dialog aria-labelledby="inner-title">
-						<div class="dialog-content">
-							<div class="dialog-header">
-								<h2 id="inner-title">Inner Dialog</h2>
-								<button
-									class="close-btn"
-									data-action-hide-dialog
-									aria-label="Close">
-									&times;
-								</button>
-							</div>
-							<div class="dialog-body">
-								<p>
-									This is the <strong>inner</strong> (nested) dialog.
-								</p>
-								<p>
-									Does the backdrop correctly cover the outer dialog?
-								</p>
-							</div>
-							<div class="dialog-footer">
-								<button
-									class="btn btn-confirm"
-									data-action-hide-dialog>
-									Close Inner
-								</button>
-							</div>
-						</div>
-					</dialog>
-				</dialog-panel>
-			</dialog>
-		</dialog-panel>
+      .btn-ghost:hover {
+        color: var(--text);
+        border-color: var(--border-accent);
+        background: rgba(255, 255, 255, 0.03);
+        box-shadow: none;
+      }
 
-		<script type="module">
-			import './dialog-panel.esm.js';
+      .btn-coral {
+        background: var(--coral);
+        color: #fff;
+      }
 
-			const basicDialog = document.getElementById('basic-dialog');
-			const outerDialog = document.getElementById('outer-dialog');
-			const innerDialog = document.getElementById('inner-dialog');
-			const logList = document.getElementById('log-list');
-			const blockCloseBtn = document.getElementById('block-close');
+      .btn-coral:hover {
+        background: #d76b58;
+        box-shadow: 0 2px 12px rgba(199, 93, 74, 0.3);
+      }
 
-			let blockNextClose = false;
+      .btn-row {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+      }
 
-			// Trigger buttons
-			document
-				.getElementById('open-basic')
-				.addEventListener('click', (e) => {
-					basicDialog.show(e.target);
-				});
+      /* ------------------------------------------------
+         Event log
+      ------------------------------------------------ */
+      .event-log {
+        margin-top: 1.5rem;
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+      }
 
-			document
-				.getElementById('open-nested')
-				.addEventListener('click', (e) => {
-					outerDialog.show(e.target);
-				});
+      .event-log-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid var(--border);
+      }
 
-			document
-				.getElementById('open-inner')
-				.addEventListener('click', (e) => {
-					innerDialog.show(e.target);
-				});
+      .event-log-title {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 400;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--text-dim);
+      }
 
-			// Block close button
-			blockCloseBtn.addEventListener('click', () => {
-				blockNextClose = true;
-				blockCloseBtn.textContent = 'Will Block Next Close!';
-				blockCloseBtn.style.background = '#ef4444';
-			});
+      .event-log-clear {
+        font-family: var(--font-mono);
+        font-size: 0.65rem;
+        color: var(--text-dim);
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        transition: color 0.2s;
+      }
 
-			// Event logging
-			function logEvent(eventName, detail) {
-				const li = document.createElement('li');
-				const time = new Date().toLocaleTimeString();
-				let text = `[${time}] ${eventName}`;
+      .event-log-clear:hover {
+        color: var(--text);
+      }
 
-				if (detail.result) {
-					text += ` (result: ${detail.result})`;
-				}
+      .event-log-body {
+        max-height: 200px;
+        overflow-y: auto;
+        padding: 0.5rem;
+      }
 
-				li.textContent = text;
-				logList.appendChild(li);
+      .event-log-body:empty::after {
+        content: 'Open a dialog to see events\2026';
+        display: block;
+        padding: 0.75rem 0.5rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        color: #444;
+        font-style: italic;
+      }
 
-				// Keep only last 15 events
-				while (logList.children.length > 15) {
-					logList.removeChild(logList.firstChild);
-				}
+      .log-entry {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.35rem 0.5rem;
+        border-radius: 4px;
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 300;
+        color: var(--text-dim);
+        line-height: 1.5;
+      }
 
-				// Scroll to bottom
-				logList.scrollTop = logList.scrollHeight;
-			}
+      .log-entry + .log-entry {
+        border-top: 1px solid rgba(255, 255, 255, 0.02);
+      }
 
-			// Listen to all events on all dialogs
-			[basicDialog, outerDialog, innerDialog].forEach((dialog) => {
-				['beforeShow', 'shown', 'beforeHide', 'hidden'].forEach(
-					(eventName) => {
-						dialog.addEventListener(eventName, (e) => {
-							logEvent(eventName, e.detail);
-						});
-					}
-				);
+      .log-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
 
-				// Block close handler
-				dialog.addEventListener('beforeHide', (e) => {
-					if (blockNextClose) {
-						e.preventDefault();
-						blockNextClose = false;
-						blockCloseBtn.textContent = 'Block Next Close';
-						blockCloseBtn.style.background = '#f59e0b';
-						logEvent('beforeHide (BLOCKED)', e.detail);
-					}
-				});
-			});
-		</script>
-	</body>
+      .log-dot.beforeShow { background: var(--accent); }
+      .log-dot.shown { background: var(--teal); }
+      .log-dot.beforeHide { background: var(--lavender); }
+      .log-dot.hidden { background: var(--coral); }
+      .log-dot.blocked { background: #ef4444; }
+
+      .log-time {
+        color: #444;
+      }
+
+      .log-name {
+        font-weight: 400;
+      }
+
+      .log-blocked {
+        color: #ef4444;
+        font-weight: 400;
+      }
+
+      /* ------------------------------------------------
+         State machine diagram
+      ------------------------------------------------ */
+      .state-diagram {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0;
+        padding: 1.5rem 1rem;
+        margin-top: 1.5rem;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        overflow-x: auto;
+      }
+
+      .state-node {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.5rem 1rem;
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 400;
+        color: var(--text-dim);
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        white-space: nowrap;
+        transition: all 0.3s var(--ease-out);
+      }
+
+      .state-node.active {
+        color: var(--accent);
+        border-color: var(--accent);
+        background: var(--accent-glow);
+        box-shadow: 0 0 16px rgba(212, 162, 78, 0.15);
+      }
+
+      .state-arrow {
+        font-family: var(--font-mono);
+        font-size: 0.65rem;
+        color: #333;
+        padding: 0 0.5rem;
+        white-space: nowrap;
+      }
+
+      /* ------------------------------------------------
+         Dialog content (inside dialogs)
+      ------------------------------------------------ */
+      dialog-panel > dialog {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.04);
+      }
+
+      .dialog-content {
+        padding: 2rem;
+      }
+
+      .dialog-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+      }
+
+      .dialog-header h2 {
+        font-family: var(--font-display);
+        font-size: 1.5rem;
+        font-weight: 400;
+        margin: 0;
+        color: var(--text);
+      }
+
+      .close-btn {
+        background: none;
+        border: none;
+        font-size: 1.25rem;
+        cursor: pointer;
+        color: var(--text-dim);
+        padding: 0;
+        width: 2rem;
+        height: 2rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+      }
+
+      .close-btn:hover {
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--text);
+      }
+
+      .dialog-body {
+        margin-bottom: 1.5rem;
+        line-height: 1.6;
+        color: var(--text-dim);
+        font-size: 0.95rem;
+      }
+
+      .dialog-body p + p {
+        margin-top: 0.75rem;
+      }
+
+      .dialog-body kbd {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 1.5rem;
+        height: 1.5rem;
+        padding: 0 0.4rem;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 400;
+        color: var(--text);
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-bottom-width: 2px;
+        border-radius: 4px;
+      }
+
+      .dialog-body code {
+        font-size: 0.82em;
+        color: var(--accent);
+      }
+
+      .dialog-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+      }
+
+      .dialog-btn {
+        padding: 0.625rem 1.25rem;
+        font-family: var(--font-body);
+        font-size: 0.85rem;
+        font-weight: 500;
+        border: none;
+        border-radius: 0.375rem;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .dialog-btn-secondary {
+        background: var(--surface-raised);
+        color: var(--text-dim);
+        border: 1px solid var(--border);
+      }
+
+      .dialog-btn-secondary:hover {
+        background: var(--border);
+        color: var(--text);
+      }
+
+      .dialog-btn-primary {
+        background: var(--accent);
+        color: var(--bg);
+      }
+
+      .dialog-btn-primary:hover {
+        background: #e0b05e;
+      }
+
+      .dialog-btn-danger {
+        background: var(--coral);
+        color: #fff;
+      }
+
+      .dialog-btn-danger:hover {
+        background: #d76b58;
+      }
+
+      /* ------------------------------------------------
+         Custom backdrop override
+      ------------------------------------------------ */
+      dialog-backdrop {
+        background: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+      }
+
+      /* ------------------------------------------------
+         Feature grid
+      ------------------------------------------------ */
+      .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 1rem;
+        margin-top: 1.5rem;
+      }
+
+      .feature-card {
+        padding: 1.25rem;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        transition: border-color 0.3s;
+      }
+
+      .feature-card:hover {
+        border-color: var(--border-accent);
+      }
+
+      .feature-card-title {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 400;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin-bottom: 0.5rem;
+      }
+
+      .feature-card p {
+        font-size: 0.82rem;
+        color: var(--text-dim);
+        line-height: 1.6;
+      }
+
+      /* ------------------------------------------------
+         Events table
+      ------------------------------------------------ */
+      .events-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1.5rem;
+        font-size: 0.82rem;
+      }
+
+      .events-table th {
+        font-family: var(--font-mono);
+        font-size: 0.65rem;
+        font-weight: 400;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--text-dim);
+        text-align: left;
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .events-table td {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        color: var(--text-dim);
+        vertical-align: top;
+      }
+
+      .events-table tr:last-child td {
+        border-bottom: none;
+      }
+
+      .events-table code {
+        font-size: 0.78rem;
+      }
+
+      .events-table .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.6rem;
+        font-weight: 400;
+        letter-spacing: 0.04em;
+        padding: 0.15rem 0.5rem;
+        border-radius: 100px;
+        background: var(--accent-glow);
+        color: var(--accent);
+        border: 1px solid rgba(212, 162, 78, 0.25);
+      }
+
+      .events-table .badge-dim {
+        background: rgba(255, 255, 255, 0.03);
+        color: var(--text-dim);
+        border-color: var(--border);
+      }
+
+      /* ------------------------------------------------
+         Footer
+      ------------------------------------------------ */
+      footer {
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--border);
+        animation: fadeUp 0.8s var(--ease-out) 0.5s backwards;
+      }
+
+      footer p {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        color: var(--text-dim);
+        letter-spacing: 0.04em;
+      }
+
+      footer a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+
+      footer a:hover {
+        color: var(--text);
+      }
+
+      /* ------------------------------------------------
+         Animations
+      ------------------------------------------------ */
+      @keyframes fadeUp {
+        from {
+          opacity: 0;
+          transform: translateY(16px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* ------------------------------------------------
+         Responsive
+      ------------------------------------------------ */
+      @media (max-width: 600px) {
+        .page {
+          padding: 2.5rem 1.25rem 4rem;
+        }
+
+        .hero {
+          padding-bottom: 2.5rem;
+        }
+
+        .install-banner {
+          flex-direction: column;
+          gap: 1rem;
+          text-align: center;
+        }
+
+        .example {
+          margin-bottom: 3.5rem;
+        }
+
+        .demo-surface {
+          padding: 1.25rem;
+        }
+
+        .state-diagram {
+          gap: 0;
+          padding: 1rem 0.5rem;
+        }
+
+        .state-node {
+          padding: 0.4rem 0.6rem;
+          font-size: 0.65rem;
+        }
+
+        .state-arrow {
+          font-size: 0.55rem;
+          padding: 0 0.25rem;
+        }
+
+        .dialog-content {
+          padding: 1.25rem;
+        }
+
+        .feature-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <!-- ======== Hero ======== -->
+      <header class="hero">
+        <a class="hero-badge" href="https://github.com/magic-spells/dialog-panel" target="_blank" rel="noopener">@magic-spells/dialog-panel</a>
+        <h1>Dialog<br /><em>Panel</em></h1>
+        <p>
+          A lightweight web component wrapping native
+          <code>&lt;dialog&gt;</code> with state-driven animations.
+          Browser-native focus trapping, escape handling, and top-layer
+          stacking &mdash; no dependencies needed.
+        </p>
+        <div class="hero-line"></div>
+      </header>
+
+      <!-- ======== Install ======== -->
+      <div class="install-banner">
+        <div class="install-item">
+          <span class="install-label">Install</span>
+          <code class="install-value">npm i @magic-spells/dialog-panel</code>
+        </div>
+        <div class="install-item">
+          <span class="install-label">Size (gzip)</span>
+          <span class="install-size">~1.8 KB</span>
+        </div>
+      </div>
+
+      <main>
+        <!-- ======== Markup ======== -->
+        <section class="example">
+          <h2>Markup</h2>
+          <p>
+            Drop in a <code>&lt;dialog-panel&gt;</code> wrapping a native
+            <code>&lt;dialog&gt;</code>. The backdrop is auto-created.
+            Close buttons use <code>data-action-hide-dialog</code>.
+          </p>
+
+          <div class="code-block"><code
+><span class="hl-tag">&lt;dialog-panel</span> <span class="hl-attr">id</span>=<span class="hl-value">"my-dialog"</span><span class="hl-tag">&gt;</span>
+  <span class="hl-tag">&lt;dialog</span> <span class="hl-attr">aria-labelledby</span>=<span class="hl-value">"title"</span><span class="hl-tag">&gt;</span>
+    <span class="hl-tag">&lt;h2</span> <span class="hl-attr">id</span>=<span class="hl-value">"title"</span><span class="hl-tag">&gt;</span>Hello<span class="hl-tag">&lt;/h2&gt;</span>
+    <span class="hl-tag">&lt;p&gt;</span>Your dialog content here.<span class="hl-tag">&lt;/p&gt;</span>
+    <span class="hl-tag">&lt;button</span> <span class="hl-attr">data-action-hide-dialog</span><span class="hl-tag">&gt;</span>Close<span class="hl-tag">&lt;/button&gt;</span>
+  <span class="hl-tag">&lt;/dialog&gt;</span>
+<span class="hl-tag">&lt;/dialog-panel&gt;</span>
+
+<span class="hl-comment">&lt;!-- Show it from JavaScript --&gt;</span>
+<span class="hl-tag">&lt;script&gt;</span>
+  <span class="hl-kw">const</span> panel = document.<span class="hl-fn">querySelector</span>(<span class="hl-str">'#my-dialog'</span>)
+  panel.<span class="hl-fn">show</span>(triggerElement)  <span class="hl-comment">// opens with animation</span>
+  panel.<span class="hl-fn">hide</span>()                <span class="hl-comment">// closes with animation</span>
+<span class="hl-tag">&lt;/script&gt;</span></code></div>
+        </section>
+
+        <!-- ======== Basic Dialog ======== -->
+        <section class="example">
+          <h2>Basic Dialog</h2>
+          <p>
+            Click to open. Close via the button, <kbd>Escape</kbd> key,
+            or clicking the backdrop. Focus returns to the trigger element
+            automatically.
+          </p>
+
+          <div class="demo-surface">
+            <div class="btn-row">
+              <button class="btn" id="open-basic">Open Dialog</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ======== State Machine ======== -->
+        <section class="example">
+          <h2>State Machine</h2>
+          <p>
+            The component moves through four states, each mapped to a
+            CSS attribute selector. Animations are pure CSS transitions
+            driven by <code>[state]</code> changes.
+          </p>
+
+          <div class="state-diagram" id="state-diagram">
+            <div class="state-node active" data-state="hidden">hidden</div>
+            <div class="state-arrow">&rarr; show()</div>
+            <div class="state-node" data-state="showing">showing</div>
+            <div class="state-arrow">&rarr; RAF</div>
+            <div class="state-node" data-state="shown">shown</div>
+            <div class="state-arrow">&rarr; hide()</div>
+            <div class="state-node" data-state="hiding">hiding</div>
+            <div class="state-arrow">&rarr; close()</div>
+          </div>
+
+          <div class="demo-surface" style="margin-top: 1.5rem">
+            <div class="demo-surface-label">Live state tracker</div>
+            <div class="btn-row">
+              <button class="btn" id="open-state">Open Dialog</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ======== Events & Lifecycle ======== -->
+        <section class="example">
+          <h2>Events &amp; Lifecycle</h2>
+          <p>
+            Four custom events fire at each stage. <code>beforeShow</code>
+            and <code>beforeHide</code> are cancelable &mdash; call
+            <code>preventDefault()</code> to block the transition.
+          </p>
+
+          <table class="events-table">
+            <thead>
+              <tr>
+                <th>Event</th>
+                <th>Cancelable</th>
+                <th>When</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>beforeShow</code></td>
+                <td><span class="badge">yes</span></td>
+                <td>Before <code>showModal()</code> is called</td>
+              </tr>
+              <tr>
+                <td><code>shown</code></td>
+                <td><span class="badge badge-dim">no</span></td>
+                <td>After show transition completes</td>
+              </tr>
+              <tr>
+                <td><code>beforeHide</code></td>
+                <td><span class="badge">yes</span></td>
+                <td>Before hide transition starts</td>
+              </tr>
+              <tr>
+                <td><code>hidden</code></td>
+                <td><span class="badge badge-dim">no</span></td>
+                <td>After dialog is closed and hidden</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="demo-surface" style="margin-top: 1.5rem">
+            <div class="demo-surface-label">Event log</div>
+            <div class="btn-row">
+              <button class="btn" id="open-events">Open Dialog</button>
+            </div>
+            <div class="event-log" style="margin-top: 1.25rem">
+              <div class="event-log-header">
+                <span class="event-log-title">Events</span>
+                <button class="event-log-clear" id="clear-log">Clear</button>
+              </div>
+              <div class="event-log-body" id="log-body"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ======== Cancel Prevention ======== -->
+        <section class="example">
+          <h2>Cancel Prevention</h2>
+          <p>
+            Attach a <code>beforeHide</code> listener and call
+            <code>preventDefault()</code> to block the dialog from
+            closing &mdash; useful for unsaved-changes confirmations
+            or required forms.
+          </p>
+
+          <div class="demo-surface">
+            <div class="demo-surface-label">Try closing this dialog</div>
+            <div class="btn-row">
+              <button class="btn btn-coral" id="open-blocked">Open Guarded Dialog</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ======== Nested Dialogs ======== -->
+        <section class="example">
+          <h2>Nested Dialogs</h2>
+          <p>
+            Place a <code>&lt;dialog-panel&gt;</code> inside another
+            dialog. Each gets its own backdrop in the top layer.
+            <code>stopPropagation</code> prevents the inner close from
+            dismissing the outer.
+          </p>
+
+          <div class="demo-surface">
+            <div class="btn-row">
+              <button class="btn" id="open-nested">Open Outer Dialog</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ======== Features ======== -->
+        <section class="example">
+          <h2>Features</h2>
+
+          <div class="feature-grid">
+            <div class="feature-card">
+              <div class="feature-card-title">Native &lt;dialog&gt;</div>
+              <p>Built on <code>showModal()</code> for free focus trapping, escape handling, and top-layer stacking.</p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-card-title">CSS-Only Animation</div>
+              <p>State attribute drives transitions. No JS animation logic &mdash; override with your own CSS.</p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-card-title">Animated Backdrop</div>
+              <p>Cross-browser animated backdrop via <code>&lt;dialog-backdrop&gt;</code>, auto-created if missing.</p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-card-title">Cancelable Events</div>
+              <p>Block show or hide with <code>preventDefault()</code> on <code>beforeShow</code> / <code>beforeHide</code>.</p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-card-title">Nesting Support</div>
+              <p>Stack dialogs naturally. Each layer gets its own backdrop with proper z-ordering.</p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-card-title">Focus Return</div>
+              <p>Automatically returns focus to the trigger element when the dialog closes.</p>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer>
+        <p>
+          <a href="https://github.com/magic-spells/dialog-panel" target="_blank" rel="noopener">GitHub</a>
+          &nbsp;&middot;&nbsp;
+          <a href="https://www.npmjs.com/package/@magic-spells/dialog-panel" target="_blank" rel="noopener">npm</a>
+          &nbsp;&middot;&nbsp;
+          MIT License
+        </p>
+      </footer>
+    </div>
+
+    <!-- ======== Basic Dialog ======== -->
+    <dialog-panel id="basic-dialog">
+      <dialog aria-labelledby="basic-title">
+        <div class="dialog-content">
+          <div class="dialog-header">
+            <h2 id="basic-title">Welcome</h2>
+            <button class="close-btn" data-action-hide-dialog aria-label="Close">&times;</button>
+          </div>
+          <div class="dialog-body">
+            <p>
+              This dialog uses the native <code>&lt;dialog&gt;</code>
+              element with <code>showModal()</code> for built-in
+              accessibility.
+            </p>
+            <p>
+              Try pressing <kbd>Escape</kbd> or clicking the backdrop to close.
+            </p>
+          </div>
+          <div class="dialog-footer">
+            <button class="dialog-btn dialog-btn-primary" data-action-hide-dialog>Got it</button>
+          </div>
+        </div>
+      </dialog>
+    </dialog-panel>
+
+    <!-- ======== State-tracked Dialog ======== -->
+    <dialog-panel id="state-dialog">
+      <dialog aria-labelledby="state-title">
+        <div class="dialog-content">
+          <div class="dialog-header">
+            <h2 id="state-title">State Tracking</h2>
+            <button class="close-btn" data-action-hide-dialog aria-label="Close">&times;</button>
+          </div>
+          <div class="dialog-body">
+            <p>Watch the state diagram update as this dialog opens and closes.</p>
+          </div>
+          <div class="dialog-footer">
+            <button class="dialog-btn dialog-btn-primary" data-action-hide-dialog>Close</button>
+          </div>
+        </div>
+      </dialog>
+    </dialog-panel>
+
+    <!-- ======== Events Dialog ======== -->
+    <dialog-panel id="events-dialog">
+      <dialog aria-labelledby="events-title">
+        <div class="dialog-content">
+          <div class="dialog-header">
+            <h2 id="events-title">Events Demo</h2>
+            <button class="close-btn" data-action-hide-dialog aria-label="Close">&times;</button>
+          </div>
+          <div class="dialog-body">
+            <p>Open and close this dialog to see the lifecycle events fire in the log below.</p>
+          </div>
+          <div class="dialog-footer">
+            <button class="dialog-btn dialog-btn-secondary" data-action-hide-dialog>Cancel</button>
+            <button class="dialog-btn dialog-btn-primary" data-action-hide-dialog data-result="confirm">Confirm</button>
+          </div>
+        </div>
+      </dialog>
+    </dialog-panel>
+
+    <!-- ======== Guarded Dialog ======== -->
+    <dialog-panel id="blocked-dialog">
+      <dialog aria-labelledby="blocked-title">
+        <div class="dialog-content">
+          <div class="dialog-header">
+            <h2 id="blocked-title">Unsaved Changes</h2>
+          </div>
+          <div class="dialog-body">
+            <p>This dialog blocks the first close attempt. The second attempt will succeed.</p>
+            <p>Try pressing <kbd>Escape</kbd>, clicking the backdrop, or the close button.</p>
+          </div>
+          <div class="dialog-footer">
+            <button class="dialog-btn dialog-btn-secondary" data-action-hide-dialog>Discard</button>
+            <button class="dialog-btn dialog-btn-danger" data-action-hide-dialog data-result="save">Force Close</button>
+          </div>
+        </div>
+      </dialog>
+    </dialog-panel>
+
+    <!-- ======== Outer Dialog (nested) ======== -->
+    <dialog-panel id="outer-dialog">
+      <dialog aria-labelledby="outer-title">
+        <div class="dialog-content">
+          <div class="dialog-header">
+            <h2 id="outer-title">Outer Dialog</h2>
+            <button class="close-btn" data-action-hide-dialog aria-label="Close">&times;</button>
+          </div>
+          <div class="dialog-body">
+            <p>
+              This is the <strong>outer</strong> dialog. Click the button
+              below to open a nested dialog on top of this one.
+            </p>
+            <p>
+              The inner dialog's backdrop will appear above this dialog
+              in the top layer.
+            </p>
+          </div>
+          <div class="dialog-footer">
+            <button class="dialog-btn dialog-btn-secondary" data-action-hide-dialog>Close</button>
+            <button class="dialog-btn dialog-btn-primary" id="open-inner">Open Inner</button>
+          </div>
+        </div>
+
+        <!-- Inner Dialog -->
+        <dialog-panel id="inner-dialog">
+          <dialog aria-labelledby="inner-title">
+            <div class="dialog-content">
+              <div class="dialog-header">
+                <h2 id="inner-title">Inner Dialog</h2>
+                <button class="close-btn" data-action-hide-dialog aria-label="Close">&times;</button>
+              </div>
+              <div class="dialog-body">
+                <p>This is the <strong>inner</strong> (nested) dialog.</p>
+                <p>The backdrop correctly covers the outer dialog. Closing this won't dismiss the parent.</p>
+              </div>
+              <div class="dialog-footer">
+                <button class="dialog-btn dialog-btn-primary" data-action-hide-dialog>Close Inner</button>
+              </div>
+            </div>
+          </dialog>
+        </dialog-panel>
+      </dialog>
+    </dialog-panel>
+
+    <script type="module">
+      import './dialog-panel.esm.js';
+
+      // Elements
+      const basicDialog = document.getElementById('basic-dialog');
+      const stateDialog = document.getElementById('state-dialog');
+      const eventsDialog = document.getElementById('events-dialog');
+      const blockedDialog = document.getElementById('blocked-dialog');
+      const outerDialog = document.getElementById('outer-dialog');
+      const innerDialog = document.getElementById('inner-dialog');
+      const logBody = document.getElementById('log-body');
+
+      // ---- Basic Dialog ----
+      document.getElementById('open-basic').addEventListener('click', (e) => {
+        basicDialog.show(e.target);
+      });
+
+      // ---- State Machine ----
+      const stateNodes = document.querySelectorAll('.state-node');
+
+      function highlightState(stateName) {
+        stateNodes.forEach((node) => {
+          node.classList.toggle('active', node.dataset.state === stateName);
+        });
+      }
+
+      document.getElementById('open-state').addEventListener('click', (e) => {
+        stateDialog.show(e.target);
+      });
+
+      ['beforeShow', 'shown', 'beforeHide', 'hidden'].forEach((evt) => {
+        stateDialog.addEventListener(evt, (e) => {
+          const map = {
+            beforeShow: 'showing',
+            shown: 'shown',
+            beforeHide: 'hiding',
+            hidden: 'hidden',
+          };
+          highlightState(map[evt]);
+        });
+      });
+
+      // ---- Events & Lifecycle ----
+      document.getElementById('open-events').addEventListener('click', (e) => {
+        eventsDialog.show(e.target);
+      });
+
+      function logEvent(name, detail, blocked = false) {
+        const entry = document.createElement('div');
+        entry.className = 'log-entry';
+
+        const dot = document.createElement('span');
+        dot.className = `log-dot ${blocked ? 'blocked' : name}`;
+
+        const time = document.createElement('span');
+        time.className = 'log-time';
+        time.textContent = new Date().toLocaleTimeString();
+
+        const label = document.createElement('span');
+        label.className = blocked ? 'log-blocked' : 'log-name';
+        let text = name;
+        if (blocked) text += ' (blocked)';
+        if (detail?.result) text += ` → ${detail.result}`;
+        label.textContent = text;
+
+        entry.append(dot, time, label);
+        logBody.appendChild(entry);
+        logBody.scrollTop = logBody.scrollHeight;
+
+        // Keep max 20 entries
+        while (logBody.children.length > 20) {
+          logBody.removeChild(logBody.firstChild);
+        }
+      }
+
+      ['beforeShow', 'shown', 'beforeHide', 'hidden'].forEach((evt) => {
+        eventsDialog.addEventListener(evt, (e) => {
+          logEvent(evt, e.detail);
+        });
+      });
+
+      document.getElementById('clear-log').addEventListener('click', () => {
+        logBody.innerHTML = '';
+      });
+
+      // ---- Cancel Prevention ----
+      let blockCount = 0;
+
+      document.getElementById('open-blocked').addEventListener('click', (e) => {
+        blockCount = 0;
+        blockedDialog.show(e.target);
+      });
+
+      blockedDialog.addEventListener('beforeHide', (e) => {
+        if (blockCount < 1) {
+          e.preventDefault();
+          blockCount++;
+          logEvent('beforeHide', e.detail, true);
+        }
+      });
+
+      // Log blocked dialog events too
+      ['beforeShow', 'shown', 'beforeHide', 'hidden'].forEach((evt) => {
+        if (evt !== 'beforeHide') {
+          blockedDialog.addEventListener(evt, (e) => {
+            logEvent(evt, e.detail);
+          });
+        }
+      });
+
+      // ---- Nested Dialogs ----
+      document.getElementById('open-nested').addEventListener('click', (e) => {
+        outerDialog.show(e.target);
+      });
+
+      document.getElementById('open-inner').addEventListener('click', (e) => {
+        innerDialog.show(e.target);
+      });
+
+      // ---- Install copy ----
+      document.querySelector('.install-value').addEventListener('click', (e) => {
+        const text = e.target.textContent;
+        navigator.clipboard.writeText(text).then(() => {
+          const original = e.target.textContent;
+          e.target.textContent = 'copied!';
+          setTimeout(() => {
+            e.target.textContent = original;
+          }, 1200);
+        });
+      });
+    </script>
+  </body>
 </html>
