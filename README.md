@@ -54,6 +54,33 @@ Or include directly in HTML:
 </script>
 ```
 
+## Positioning
+
+By default, the panel is centered and uses a fade/scale animation. Set the
+`position` attribute to slide the panel in from an edge instead:
+
+```html
+<dialog-panel position="bottom">...</dialog-panel>
+```
+
+| Value | Animation | Typical use |
+|-------|-----------|-------------|
+| `center` (default) | Fade + scale | Standard modal |
+| `top` | Slide down from top | Predictive search, notifications |
+| `bottom` | Slide up from bottom | iOS-style action sheets |
+| `left` | Slide in from left | Mobile nav menu |
+| `right` | Slide in from right | Cart drawer, side panel |
+
+Drawer panels default to full width (top/bottom, max-height `85vh`) or full
+height (left/right, `min(24rem, 90vw)` wide). Override with your own CSS to
+customize:
+
+```css
+dialog-panel[position='right'] > dialog {
+  width: 28rem;
+}
+```
+
 ## How It Works
 
 1. Wrap a native `<dialog>` element inside `<dialog-panel>`

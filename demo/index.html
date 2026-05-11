@@ -65,6 +65,7 @@
         background: var(--bg);
         line-height: 1.6;
         min-height: 100vh;
+        overflow-x: clip;
       }
 
       /* Grain overlay */
@@ -105,11 +106,11 @@
       .hero::before {
         content: '';
         position: absolute;
-        top: -120px;
+        top: -40%;
         left: 50%;
         transform: translateX(-50%);
-        width: 600px;
-        height: 600px;
+        width: 100%;
+        height: 120%;
         border-radius: 50%;
         background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
         pointer-events: none;
@@ -171,40 +172,51 @@
       .install-banner {
         display: flex;
         justify-content: center;
-        align-items: center;
+        flex-wrap: wrap;
         gap: 2.5rem;
-        padding: 1.25rem 2rem;
-        margin-bottom: 4rem;
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 10px;
+        margin: 0 auto 1.25rem;
+        max-width: 680px;
+        padding: 0 1.5rem;
         animation: fadeUp 0.8s var(--ease-out) 0.2s backwards;
+      }
+
+      .install-specs {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 2.5rem;
+        margin: 0 auto 4rem;
+        max-width: 680px;
+        padding: 0 1.5rem;
+        animation: fadeUp 0.8s var(--ease-out) 0.3s backwards;
       }
 
       .install-item {
         display: flex;
+        flex-direction: column;
         align-items: center;
-        gap: 0.75rem;
+        gap: 0.4rem;
       }
 
       .install-label {
-        font-family: var(--font-mono);
-        font-size: 0.7rem;
+        font-family: var(--font-body);
+        font-size: 0.65rem;
         font-weight: 400;
-        letter-spacing: 0.08em;
+        letter-spacing: 0.18em;
         text-transform: uppercase;
         color: var(--text-dim);
       }
 
       .install-value {
-        font-family: var(--font-mono);
-        font-size: 0.85rem;
+        font-family: 'Courier New', monospace;
+        font-size: 0.88rem;
         color: var(--text);
         cursor: copy;
-        padding: 0.3rem 0.75rem;
         background: var(--surface-raised);
         border: 1px solid var(--border);
-        border-radius: 6px;
+        border-radius: 8px;
+        padding: 0.5em 1.2em;
+        user-select: all;
         transition: border-color 0.2s;
       }
 
@@ -213,10 +225,11 @@
       }
 
       .install-size {
-        font-family: var(--font-mono);
-        font-size: 0.85rem;
+        font-family: 'Courier New', monospace;
+        font-size: 0.88rem;
         font-weight: 400;
         color: var(--accent);
+        padding: 0.5em 0;
       }
 
       /* ------------------------------------------------
@@ -348,6 +361,16 @@
         display: flex;
         gap: 0.75rem;
         flex-wrap: wrap;
+      }
+
+      .btn-grid-2x2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+      }
+
+      .btn-grid-2x2 .btn {
+        width: 100%;
       }
 
       /* ------------------------------------------------
@@ -506,7 +529,330 @@
       dialog-panel > dialog {
         background: var(--surface);
         border: 1px solid var(--border);
+        border-radius: 0.5rem;
         box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.04);
+      }
+
+      /* Drawers sit flush against their edge — flatten the inner radius */
+      dialog-panel[position='top'] > dialog {
+        border-radius: 0 0 0.5rem 0.5rem;
+      }
+      dialog-panel[position='bottom'] > dialog {
+        border-radius: 0.5rem 0.5rem 0 0;
+      }
+      dialog-panel[position='left'] > dialog {
+        border-radius: 0 0.5rem 0.5rem 0;
+      }
+      dialog-panel[position='right'] > dialog {
+        border-radius: 0.5rem 0 0 0.5rem;
+      }
+
+      /* ------------------------------------------------
+         Drawer demo content
+      ------------------------------------------------ */
+
+      /* Predictive search (top drawer) */
+      .search-drawer-inner {
+        display: flex;
+        flex-direction: column;
+        padding: 1.5rem;
+        gap: 1rem;
+      }
+      .search-drawer-bar {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+      .search-input {
+        flex: 1;
+        min-width: 0;
+        padding: 0.75rem 1rem;
+        font-family: var(--font-body);
+        font-size: 1rem;
+        color: var(--text);
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-radius: 0.375rem;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+      .search-input:focus {
+        border-color: var(--accent);
+      }
+      .search-suggestions {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+      }
+      .search-suggestions-label {
+        font-family: var(--font-mono);
+        font-size: 0.65rem;
+        font-weight: 400;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--text-dim);
+        padding: 0 0.5rem 0.5rem;
+      }
+      .search-suggestion {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.625rem 0.5rem;
+        color: var(--text-dim);
+        font-size: 0.9rem;
+        cursor: pointer;
+        border-radius: 0.25rem;
+        transition: background 0.15s, color 0.15s;
+      }
+      .search-suggestion:hover {
+        background: rgba(255, 255, 255, 0.03);
+        color: var(--text);
+      }
+      .search-suggestion-icon {
+        color: var(--text-dim);
+        flex-shrink: 0;
+      }
+
+      /* Action sheet (bottom drawer) */
+      .action-sheet-inner {
+        padding: 1.5rem 1rem calc(1rem + env(safe-area-inset-bottom));
+      }
+      .action-sheet-question {
+        text-align: center;
+        font-family: var(--font-display);
+        font-size: 1.4rem;
+        font-weight: 400;
+        color: var(--text);
+        margin-bottom: 0.5rem;
+      }
+      .action-sheet-detail {
+        text-align: center;
+        font-size: 0.85rem;
+        color: var(--text-dim);
+        margin-bottom: 1.5rem;
+      }
+      .action-sheet-actions {
+        display: flex;
+        flex-direction: column;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        overflow: hidden;
+      }
+      .action-sheet-btn {
+        padding: 0.875rem 1rem;
+        font-family: var(--font-body);
+        font-size: 0.95rem;
+        font-weight: 400;
+        color: var(--text);
+        background: transparent;
+        border: none;
+        border-bottom: 1px solid var(--border);
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      .action-sheet-btn:last-child {
+        border-bottom: none;
+      }
+      .action-sheet-btn:hover {
+        background: rgba(255, 255, 255, 0.04);
+      }
+      .action-sheet-btn.is-danger {
+        color: var(--coral);
+      }
+      .action-sheet-cancel {
+        margin-top: 0.5rem;
+        width: 100%;
+        padding: 0.875rem 1rem;
+        font-family: var(--font-body);
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: var(--text);
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      .action-sheet-cancel:hover {
+        background: rgba(255, 255, 255, 0.06);
+      }
+
+      /* Mobile menu (left drawer) */
+      .menu-drawer-inner {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+      }
+      .menu-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--border);
+      }
+      .menu-brand {
+        font-family: var(--font-display);
+        font-size: 1.25rem;
+        color: var(--text);
+      }
+      .menu-brand em {
+        color: var(--accent);
+        font-style: italic;
+      }
+      .menu-nav {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1rem 0;
+      }
+      .menu-section-label {
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 400;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--text-dim);
+        padding: 0.75rem 1.5rem 0.25rem;
+      }
+      .menu-link {
+        display: block;
+        padding: 0.75rem 1.5rem;
+        color: var(--text);
+        font-size: 1rem;
+        text-decoration: none;
+        transition: background 0.15s, color 0.15s;
+      }
+      .menu-link:hover {
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--accent);
+      }
+      .menu-divider {
+        height: 1px;
+        background: var(--border);
+        margin: 0.5rem 1.5rem;
+      }
+      .menu-footer {
+        padding: 1rem 1.5rem;
+        border-top: 1px solid var(--border);
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        color: var(--text-dim);
+      }
+
+      /* Cart drawer (right drawer) */
+      .cart-drawer-inner {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+      }
+      .cart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--border);
+      }
+      .cart-title {
+        font-family: var(--font-display);
+        font-size: 1.4rem;
+        font-weight: 400;
+        color: var(--text);
+        margin: 0;
+      }
+      .cart-items {
+        flex: 1;
+        overflow-y: auto;
+        padding: 0.5rem 1.5rem;
+      }
+      .cart-item {
+        display: grid;
+        grid-template-columns: 64px 1fr auto;
+        gap: 1rem;
+        align-items: center;
+        padding: 1rem 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .cart-item:last-child {
+        border-bottom: none;
+      }
+      .cart-thumb {
+        width: 64px;
+        height: 64px;
+        border-radius: 0.375rem;
+        background: linear-gradient(135deg, var(--surface-raised), var(--border));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-dim);
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+      }
+      .cart-item-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+        min-width: 0;
+      }
+      .cart-item-title {
+        font-size: 0.92rem;
+        color: var(--text);
+        line-height: 1.3;
+      }
+      .cart-item-variant {
+        font-size: 0.78rem;
+        color: var(--text-dim);
+      }
+      .cart-item-qty {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        color: var(--text-dim);
+      }
+      .cart-item-price {
+        font-family: var(--font-mono);
+        font-size: 0.9rem;
+        color: var(--text);
+        white-space: nowrap;
+      }
+      .cart-footer {
+        padding: 1.25rem 1.5rem calc(1.25rem + env(safe-area-inset-bottom));
+        border-top: 1px solid var(--border);
+        background: var(--surface);
+      }
+      .cart-subtotal {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 1rem;
+      }
+      .cart-subtotal-label {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--text-dim);
+      }
+      .cart-subtotal-value {
+        font-family: var(--font-mono);
+        font-size: 1.1rem;
+        color: var(--text);
+      }
+      .cart-checkout {
+        width: 100%;
+        padding: 0.875rem 1rem;
+        font-family: var(--font-body);
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: var(--bg);
+        background: var(--accent);
+        border: none;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .cart-checkout:hover {
+        background: #e0b05e;
       }
 
       .dialog-content {
@@ -783,12 +1129,6 @@
           padding-bottom: 2.5rem;
         }
 
-        .install-banner {
-          flex-direction: column;
-          gap: 1rem;
-          text-align: center;
-        }
-
         .example {
           margin-bottom: 3.5rem;
         }
@@ -819,6 +1159,10 @@
         .feature-grid {
           grid-template-columns: 1fr;
         }
+
+        .btn-grid-2x2 {
+          grid-template-columns: 1fr;
+        }
       }
     </style>
   </head>
@@ -843,9 +1187,19 @@
           <span class="install-label">Install</span>
           <code class="install-value">npm i @magic-spells/dialog-panel</code>
         </div>
+      </div>
+      <div class="install-specs">
         <div class="install-item">
-          <span class="install-label">Size (gzip)</span>
-          <span class="install-size">~1.8 KB</span>
+          <span class="install-label">JS (gzip)</span>
+          <span class="install-size">1.26 KB</span>
+        </div>
+        <div class="install-item">
+          <span class="install-label">CSS (gzip)</span>
+          <span class="install-size">0.60 KB</span>
+        </div>
+        <div class="install-item">
+          <span class="install-label">Dependencies</span>
+          <span class="install-size">0</span>
         </div>
       </div>
 
@@ -1007,6 +1361,26 @@
           <div class="demo-surface">
             <div class="btn-row">
               <button class="btn" id="open-nested">Open Outer Dialog</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ======== Positions / Drawers ======== -->
+        <section class="example">
+          <h2>Positions</h2>
+          <p>
+            Set <code>position="top|bottom|left|right"</code> to slide
+            the panel in from an edge instead of fading from center.
+            Useful for cart drawers, mobile menus, action sheets, and
+            predictive search.
+          </p>
+
+          <div class="demo-surface">
+            <div class="btn-grid-2x2">
+              <button class="btn" id="open-search">Open Search (top)</button>
+              <button class="btn" id="open-action-sheet">Open Action Sheet (bottom)</button>
+              <button class="btn" id="open-menu">Open Menu (left)</button>
+              <button class="btn" id="open-cart">Open Cart (right)</button>
             </div>
           </div>
         </section>
@@ -1181,6 +1555,136 @@
       </dialog>
     </dialog-panel>
 
+    <!-- ======== Predictive Search (top drawer) ======== -->
+    <dialog-panel position="top" id="search-drawer">
+      <dialog aria-label="Search">
+        <div class="search-drawer-inner">
+          <div class="search-drawer-bar">
+            <input
+              type="search"
+              class="search-input"
+              id="search-input"
+              placeholder="Search products, articles, help…"
+              autocomplete="off" />
+            <button class="close-btn" data-action-hide-dialog aria-label="Close search">&times;</button>
+          </div>
+          <div>
+            <div class="search-suggestions-label">Recent searches</div>
+            <ul class="search-suggestions">
+              <li class="search-suggestion">
+                <svg class="search-suggestion-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+                <span>linen overshirt</span>
+              </li>
+              <li class="search-suggestion">
+                <svg class="search-suggestion-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+                <span>ceramic mug set</span>
+              </li>
+              <li class="search-suggestion">
+                <svg class="search-suggestion-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+                <span>shipping policy</span>
+              </li>
+              <li class="search-suggestion">
+                <svg class="search-suggestion-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+                <span>gift cards</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </dialog>
+    </dialog-panel>
+
+    <!-- ======== Action Sheet (bottom drawer) ======== -->
+    <dialog-panel position="bottom" id="action-drawer">
+      <dialog aria-labelledby="action-title">
+        <div class="action-sheet-inner">
+          <h2 id="action-title" class="action-sheet-question">Discard changes?</h2>
+          <p class="action-sheet-detail">You have unsaved edits. This can't be undone.</p>
+          <div class="action-sheet-actions">
+            <button class="action-sheet-btn is-danger" data-action-hide-dialog data-result="discard">Discard Changes</button>
+            <button class="action-sheet-btn" data-action-hide-dialog data-result="save">Save Draft</button>
+          </div>
+          <button class="action-sheet-cancel" data-action-hide-dialog data-result="cancel">Cancel</button>
+        </div>
+      </dialog>
+    </dialog-panel>
+
+    <!-- ======== Mobile Menu (left drawer) ======== -->
+    <dialog-panel position="left" id="menu-drawer">
+      <dialog aria-label="Main menu">
+        <div class="menu-drawer-inner">
+          <div class="menu-header">
+            <div class="menu-brand">Dialog<em>Panel</em></div>
+            <button class="close-btn" data-action-hide-dialog aria-label="Close menu">&times;</button>
+          </div>
+          <nav class="menu-nav">
+            <div class="menu-section-label">Shop</div>
+            <a class="menu-link" href="#" data-action-hide-dialog>New Arrivals</a>
+            <a class="menu-link" href="#" data-action-hide-dialog>Best Sellers</a>
+            <a class="menu-link" href="#" data-action-hide-dialog>Collections</a>
+            <a class="menu-link" href="#" data-action-hide-dialog>Sale</a>
+            <div class="menu-divider"></div>
+            <div class="menu-section-label">Company</div>
+            <a class="menu-link" href="#" data-action-hide-dialog>About</a>
+            <a class="menu-link" href="#" data-action-hide-dialog>Journal</a>
+            <a class="menu-link" href="#" data-action-hide-dialog>Contact</a>
+            <div class="menu-divider"></div>
+            <div class="menu-section-label">Account</div>
+            <a class="menu-link" href="#" data-action-hide-dialog>Sign in</a>
+            <a class="menu-link" href="#" data-action-hide-dialog>Orders</a>
+          </nav>
+          <div class="menu-footer">&copy; 2026 Magic Spells</div>
+        </div>
+      </dialog>
+    </dialog-panel>
+
+    <!-- ======== Cart Drawer (right drawer) ======== -->
+    <dialog-panel position="right" id="cart-drawer">
+      <dialog aria-labelledby="cart-title">
+        <div class="cart-drawer-inner">
+          <div class="cart-header">
+            <h2 id="cart-title" class="cart-title">Your Cart</h2>
+            <button class="close-btn" data-action-hide-dialog aria-label="Close cart">&times;</button>
+          </div>
+          <div class="cart-items">
+            <div class="cart-item">
+              <div class="cart-thumb">IMG</div>
+              <div class="cart-item-info">
+                <span class="cart-item-title">Linen Overshirt</span>
+                <span class="cart-item-variant">Sand · Medium</span>
+                <span class="cart-item-qty">Qty 1</span>
+              </div>
+              <span class="cart-item-price">$148.00</span>
+            </div>
+            <div class="cart-item">
+              <div class="cart-thumb">IMG</div>
+              <div class="cart-item-info">
+                <span class="cart-item-title">Ceramic Mug Set</span>
+                <span class="cart-item-variant">Bone · Set of 2</span>
+                <span class="cart-item-qty">Qty 1</span>
+              </div>
+              <span class="cart-item-price">$64.00</span>
+            </div>
+            <div class="cart-item">
+              <div class="cart-thumb">IMG</div>
+              <div class="cart-item-info">
+                <span class="cart-item-title">Wool Throw</span>
+                <span class="cart-item-variant">Ochre · 50×60in</span>
+                <span class="cart-item-qty">Qty 2</span>
+              </div>
+              <span class="cart-item-price">$220.00</span>
+            </div>
+          </div>
+          <div class="cart-footer">
+            <div class="cart-subtotal">
+              <span class="cart-subtotal-label">Subtotal</span>
+              <span class="cart-subtotal-value">$432.00</span>
+            </div>
+            <button class="cart-checkout" data-action-hide-dialog data-result="checkout">Checkout</button>
+          </div>
+        </div>
+      </dialog>
+    </dialog-panel>
+
     <script type="module">
       import './dialog-panel.esm.js';
 
@@ -1298,6 +1802,30 @@
 
       document.getElementById('open-inner').addEventListener('click', (e) => {
         innerDialog.show(e.target);
+      });
+
+      // ---- Position drawers ----
+      const searchDrawer = document.getElementById('search-drawer');
+      const actionDrawer = document.getElementById('action-drawer');
+      const menuDrawer = document.getElementById('menu-drawer');
+      const cartDrawer = document.getElementById('cart-drawer');
+
+      document.getElementById('open-search').addEventListener('click', (e) => {
+        searchDrawer.show(e.target);
+      });
+      document.getElementById('open-action-sheet').addEventListener('click', (e) => {
+        actionDrawer.show(e.target);
+      });
+      document.getElementById('open-menu').addEventListener('click', (e) => {
+        menuDrawer.show(e.target);
+      });
+      document.getElementById('open-cart').addEventListener('click', (e) => {
+        cartDrawer.show(e.target);
+      });
+
+      // Autofocus the search input when the search drawer is fully shown
+      searchDrawer.addEventListener('shown', () => {
+        document.getElementById('search-input').focus();
       });
 
       // ---- Install copy ----
