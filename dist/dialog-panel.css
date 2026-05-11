@@ -116,84 +116,96 @@ dialog-panel[state='hiding'] > dialog-backdrop {
 
 /* ============================================================
    Position variants — drawer-style slide-in animations.
-   Default (no position attr, or position="center") uses the
-   centered fade/scale animation defined above.
+   Self-contained: declares its own `position: fixed` and
+   explicit inset values so it doesn't rely on the UA's
+   `dialog:modal` styling or on consumer body overflow rules.
+   Default (no position attr) uses the centered fade/scale
+   animation defined above.
    ============================================================ */
+
+/* Shared base for all four drawer positions */
+dialog-panel[position='top'] > dialog,
+dialog-panel[position='right'] > dialog,
+dialog-panel[position='bottom'] > dialog,
+dialog-panel[position='left'] > dialog {
+	position: fixed;
+	margin: 0;
+	max-width: 100%;
+	opacity: 1;
+}
 
 /* ---- Top drawer ---- */
 dialog-panel[position='top'] > dialog {
-	margin: 0 auto auto auto;
+	top: 0;
+	right: 0;
+	bottom: auto;
+	left: 0;
 	width: 100%;
-	max-width: 100%;
 	max-height: 85vh;
-}
-
-dialog-panel[position='top'][state='showing'] > dialog,
-dialog-panel[position='top'][state='hiding'] > dialog {
-	opacity: 1;
 	transform: translateY(-100%);
 }
 
 dialog-panel[position='top'][state='shown'] > dialog {
-	opacity: 1;
 	transform: translateY(0);
 }
 
 /* ---- Bottom drawer ---- */
 dialog-panel[position='bottom'] > dialog {
-	margin: auto auto 0 auto;
+	top: auto;
+	right: 0;
+	bottom: 0;
+	left: 0;
 	width: 100%;
-	max-width: 100%;
 	max-height: 85vh;
-}
-
-dialog-panel[position='bottom'][state='showing'] > dialog,
-dialog-panel[position='bottom'][state='hiding'] > dialog {
-	opacity: 1;
 	transform: translateY(100%);
 }
 
 dialog-panel[position='bottom'][state='shown'] > dialog {
-	opacity: 1;
 	transform: translateY(0);
 }
 
 /* ---- Left drawer ---- */
 dialog-panel[position='left'] > dialog {
-	margin: auto auto auto 0;
+	top: 0;
+	right: auto;
+	bottom: 0;
+	left: 0;
+	width: min(24rem, 90vw);
 	height: 100dvh;
 	max-height: 100dvh;
-	width: min(24rem, 90vw);
-	max-width: 100%;
-}
-
-dialog-panel[position='left'][state='showing'] > dialog,
-dialog-panel[position='left'][state='hiding'] > dialog {
-	opacity: 1;
 	transform: translateX(-100%);
 }
 
 dialog-panel[position='left'][state='shown'] > dialog {
-	opacity: 1;
 	transform: translateX(0);
 }
 
 /* ---- Right drawer ---- */
 dialog-panel[position='right'] > dialog {
-	margin: auto 0 auto auto;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: auto;
+	width: min(24rem, 90vw);
 	height: 100dvh;
 	max-height: 100dvh;
-	width: min(24rem, 90vw);
-	max-width: 100%;
-}
-
-dialog-panel[position='right'][state='showing'] > dialog,
-dialog-panel[position='right'][state='hiding'] > dialog {
-	opacity: 1;
 	transform: translateX(100%);
 }
 
 dialog-panel[position='right'][state='shown'] > dialog {
-	opacity: 1;
 	transform: translateX(0);
+}
+
+/* ============================================================
+   Page scroll lock — prevents the underlying page from
+   scrolling while any dialog-panel is open or animating.
+   Keyed on the package's own [state='*'] attributes so it
+   activates from the first frame of the opening animation
+   and stays through the closing animation, regardless of
+   when the native <dialog>'s [open] attribute is toggled.
+   ============================================================ */
+body:has(dialog-panel[state='showing']),
+body:has(dialog-panel[state='shown']),
+body:has(dialog-panel[state='hiding']) {
+	overflow: hidden;
 }
