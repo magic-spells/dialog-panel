@@ -209,3 +209,22 @@ body:has(dialog-panel[state='shown']),
 body:has(dialog-panel[state='hiding']) {
 	overflow: hidden;
 }
+
+/* Morph transport — the engine owns opacity, transforms, and transitions */
+dialog-panel[morph] > dialog,
+dialog-panel[morph][state] > dialog {
+	position: fixed;
+	inset: 0;
+	margin: auto;
+	max-width: none;
+	max-height: none;
+	opacity: 1;
+	transform: none;
+	transition: none;
+}
+
+/* Bring in the scrim during the outbound morph flight */
+dialog-panel[morph][state='showing'] > dialog-backdrop {
+	opacity: 1;
+	pointer-events: auto;
+}

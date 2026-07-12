@@ -54,6 +54,53 @@ Or include directly in HTML:
 </script>
 ```
 
+## Morph transitions
+
+`dialog-panel` can use a duck-typed `@magic-spells/morph-engine` instance as
+its transition transport without taking a dependency on the engine. Assign the
+engine to the writable `morphEngine` property and pass the source element to
+`show()`:
+
+```html
+<button id="morph-card">Open details</button>
+
+<dialog-panel id="morph-panel" morph-display="flex">
+  <dialog>
+    <h2>Details</h2>
+    <p>The card springs into this real modal dialog.</p>
+    <button data-action-hide-dialog>Close</button>
+  </dialog>
+</dialog-panel>
+
+<script>
+  const panel = document.getElementById('morph-panel');
+  const card = document.getElementById('morph-card');
+
+  panel.morphEngine = new MorphEngine.MorphEngine({
+    lockScroll: false,
+    zIndex: 10000000,
+  });
+  card.addEventListener('click', () => panel.show(card));
+</script>
+```
+
+The dialog stays closed while the engine renders it in normal flow, then moves
+into the browser top layer with `showModal()` on the spring's settle frame.
+Calling `hide()` during the outbound flight or `show()` during the return flight
+reverses the active spring in place. Calling `show()` without a trigger element
+uses the existing CSS transition path instead.
+
+`morph-display` controls the display value used while measuring and revealing a
+closed target (`block` by default). Assigning an engine automatically adds the
+`morph` attribute as a CSS hook; assigning `null` removes it. The default
+stylesheet uses that hook to pin the target geometry and hand control of
+opacity, transforms, and transitions to the engine.
+
+Give morph dialogs an explicit width and height so their in-flow and `:modal`
+geometry match. Consumer CSS must not set `opacity`, `transform`, or
+`transition` on the dialog in morph mode because those declarations fight the
+engine's inline animation styles.
+
 ## Positioning
 
 By default, the panel is centered and uses a fade/scale animation. Set the
@@ -118,10 +165,11 @@ dialog-panel[state='hidden'] > dialog { /* hidden */ }
 | `show(triggerEl?)` | Opens the dialog. Pass trigger element for focus return. Returns `false` if cancelled. |
 | `hide(triggerEl?)` | Closes the dialog. Returns `false` if cancelled. |
 
-### Properties (read-only)
+### Properties
 
 | Property | Type | Description |
 |----------|------|-------------|
+| `morphEngine` | `Object \| null` | Optional duck-typed morph transport. Set to `null` to restore CSS-only mode. |
 | `state` | `string` | Current state: `'hidden'`, `'showing'`, `'shown'`, `'hiding'` |
 | `dialog` | `HTMLDialogElement` | Reference to inner `<dialog>` |
 | `isOpen` | `boolean` | `true` if `showing` or `shown` |

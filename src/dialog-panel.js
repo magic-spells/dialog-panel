@@ -10,6 +10,7 @@ import './dialog-panel.css';
  * @property {HTMLDialogElement} dialog - Reference to inner <dialog> element
  * @property {boolean} isOpen - True if state is 'showing' or 'shown'
  * @property {HTMLElement|null} triggerElement - Element that triggered current action
+ * @property {Object|null} morphEngine - Optional duck-typed morph transition engine
  *
  * @fires beforeShow - Fired before showing starts (cancelable)
  * @fires shown - Fired after show animation completes
@@ -22,12 +23,19 @@ class DialogPanel extends HTMLElement {
 	#triggerElement = null;
 	#dialog = null;
 	#result = null;
+	#hideTriggerElement = null;
+	#morphEngine = null;
+	#morphListenersAttached = false;
 
 	// Event handler references for cleanup
 	#handlers = {
 		click: null,
 		dialogClick: null,
 		cancel: null,
+		close: null,
+		morphShown: null,
+		morphHidden: null,
+		morphStop: null,
 	};
 
 	// Animation cleanup references
@@ -61,6 +69,7 @@ class DialogPanel extends HTMLElement {
 
 		// Bind event handlers
 		_.#bindEvents();
+		_.#wireMorphEngine();
 	}
 
 	disconnectedCallback() {
@@ -75,6 +84,7 @@ class DialogPanel extends HTMLElement {
 			clearTimeout(_.#pendingTimeout);
 			_.#pendingTimeout = null;
 		}
+		_.#unwireMorphEngine();
 
 		// Clean up event listeners
 		if (_.#handlers.click) {
@@ -89,6 +99,9 @@ class DialogPanel extends HTMLElement {
 			}
 			if (_.#handlers.cancel) {
 				_.#dialog.removeEventListener('cancel', _.#handlers.cancel);
+			}
+			if (_.#handlers.close) {
+				_.#dialog.removeEventListener('close', _.#handlers.close);
 			}
 		}
 	}
@@ -133,6 +146,105 @@ class DialogPanel extends HTMLElement {
 			_.hide();
 		};
 		_.#dialog.addEventListener('cancel', _.#handlers.cancel);
+
+		// Cover browser force-close paths that bypass the cancel event
+		_.#handlers.close = () => {
+			if (
+				_.#morphEngine?.state === 'shown' &&
+				_.#state === 'shown' &&
+				!_.#dialog.open
+			) {
+				_.hide();
+			}
+		};
+		_.#dialog.addEventListener('close', _.#handlers.close);
+	}
+
+	/**
+	 * Wire morph engine lifecycle listeners
+	 * @private
+	 */
+	#wireMorphEngine() {
+		const _ = this;
+
+		if (!_.#morphEngine || _.#morphListenersAttached) return;
+
+		if (!_.#handlers.morphShown) {
+			_.#handlers.morphShown = _.#handleMorphShown.bind(_);
+			_.#handlers.morphHidden = _.#handleMorphHidden.bind(_);
+			_.#handlers.morphStop = _.#handleMorphStop.bind(_);
+		}
+
+		_.#morphEngine.on('shown', _.#handlers.morphShown);
+		_.#morphEngine.on('hidden', _.#handlers.morphHidden);
+		_.#morphEngine.on('stop', _.#handlers.morphStop);
+		_.#morphListenersAttached = true;
+	}
+
+	/**
+	 * Unwire morph engine lifecycle listeners
+	 * @private
+	 */
+	#unwireMorphEngine() {
+		const _ = this;
+
+		if (!_.#morphEngine || !_.#morphListenersAttached) return;
+
+		_.#morphEngine.off('shown', _.#handlers.morphShown);
+		_.#morphEngine.off('hidden', _.#handlers.morphHidden);
+		_.#morphEngine.off('stop', _.#handlers.morphStop);
+		_.#morphListenersAttached = false;
+	}
+
+	/**
+	 * Promote the settled morph target into the dialog top layer
+	 * @private
+	 */
+	#handleMorphShown() {
+		const _ = this;
+
+		if (!_.#dialog.open) _.#dialog.showModal();
+		_.#setState('shown');
+		_.#emit('shown');
+	}
+
+	/**
+	 * Finalize a settled morph hide
+	 * @private
+	 */
+	#handleMorphHidden() {
+		this.#finalizeMorphHide();
+	}
+
+	/**
+	 * Finalize an interrupted morph as hidden
+	 * @private
+	 */
+	#handleMorphStop() {
+		this.#finalizeMorphHide();
+	}
+
+	/**
+	 * Restore the component's hidden state after a morph ends
+	 * @private
+	 */
+	#finalizeMorphHide() {
+		const _ = this;
+
+		if (_.#dialog.open) _.#dialog.close();
+		_.#setState('hidden');
+		_.#emit('hidden', {
+			result: _.#result,
+			triggerElement: _.#hideTriggerElement,
+		});
+
+		// Return focus to trigger element
+		if (_.#triggerElement) _.#triggerElement.focus();
+
+		// Clean up
+		_.#triggerElement = null;
+		_.#hideTriggerElement = null;
+		_.#result = null;
 	}
 
 	/**
@@ -146,17 +258,36 @@ class DialogPanel extends HTMLElement {
 		// Check if already showing/shown
 		if (_.#state === 'showing' || _.#state === 'shown') return true;
 
-		// If currently hiding, ignore (let hide complete first)
-		if (_.#state === 'hiding') return false;
+		const reversingMorph =
+			_.#state === 'hiding' && _.#morphEngine?.state === 'hiding';
+
+		// CSS transitions cannot reverse while hiding
+		if (_.#state === 'hiding' && !reversingMorph) return false;
 
 		// Store trigger element for focus return later
-		_.#triggerElement = triggerEl || null;
+		if (!reversingMorph) _.#triggerElement = triggerEl || null;
 
 		// Fire beforeShow (cancelable)
 		if (!_.#emit('beforeShow', { cancelable: true })) return false;
 
-		// Set state to 'showing' and open native dialog
+		if (reversingMorph) {
+			_.#hideTriggerElement = null;
+			_.#result = null;
+		}
+
+		// Set state to 'showing'
 		_.#setState('showing');
+
+		if (_.#morphEngine && (triggerEl || reversingMorph)) {
+			_.#morphEngine.show({
+				from: _.#triggerElement,
+				to: _.#dialog,
+				display: _.getAttribute('morph-display') || 'block',
+			});
+			return true;
+		}
+
+		// Open native dialog for the CSS transition path
 		_.#dialog.showModal();
 
 		// Double RAF ensures browser has painted the 'showing' state
@@ -187,8 +318,11 @@ class DialogPanel extends HTMLElement {
 		// Check if already hiding/hidden
 		if (_.#state === 'hiding' || _.#state === 'hidden') return true;
 
-		// If currently showing, ignore (let show complete first)
-		if (_.#state === 'showing') return false;
+		const reversingMorph =
+			_.#state === 'showing' && _.#morphEngine?.state === 'showing';
+
+		// CSS transitions cannot reverse while showing
+		if (_.#state === 'showing' && !reversingMorph) return false;
 
 		// Capture result from trigger element
 		_.#result = triggerEl?.dataset?.result ?? null;
@@ -202,6 +336,14 @@ class DialogPanel extends HTMLElement {
 			})
 		) {
 			return false;
+		}
+
+		if (reversingMorph || _.#morphEngine?.state === 'shown') {
+			_.#hideTriggerElement = triggerEl;
+			if (_.#dialog.open) _.#dialog.close();
+			_.#morphEngine.hide();
+			_.#setState('hiding');
+			return true;
 		}
 
 		// Set state to 'hiding' - this triggers CSS exit animation
@@ -235,15 +377,16 @@ class DialogPanel extends HTMLElement {
 	#waitForTransition(callback) {
 		const _ = this;
 		let called = false;
+		let timerId = null;
 
 		const done = () => {
 			if (called) return;
 			called = true;
 			_.#dialog.removeEventListener('transitionend', onTransitionEnd);
-			if (_.#pendingTimeout) {
-				clearTimeout(_.#pendingTimeout);
-				_.#pendingTimeout = null;
-			}
+			// clear only our own timer — clearing the shared field would let an
+			// earlier, still-pending wait cancel a later wait's fallback
+			clearTimeout(timerId);
+			if (_.#pendingTimeout === timerId) _.#pendingTimeout = null;
 			callback();
 		};
 
@@ -253,10 +396,8 @@ class DialogPanel extends HTMLElement {
 
 		_.#dialog.addEventListener('transitionend', onTransitionEnd);
 
-		_.#pendingTimeout = setTimeout(
-			done,
-			DialogPanel.TRANSITION_FALLBACK_TIMEOUT
-		);
+		timerId = setTimeout(done, DialogPanel.TRANSITION_FALLBACK_TIMEOUT);
+		_.#pendingTimeout = timerId;
 	}
 
 	/**
@@ -293,6 +434,34 @@ class DialogPanel extends HTMLElement {
 		});
 
 		return _.dispatchEvent(event);
+	}
+
+	/**
+	 * Optional morph transition transport
+	 * @returns {Object|null} The attached morph engine
+	 */
+	get morphEngine() {
+		return this.#morphEngine;
+	}
+
+	/**
+	 * Attach or remove a duck-typed morph transition engine
+	 * @param {Object|null} engine - Engine with show, hide, state, on, and off
+	 */
+	set morphEngine(engine) {
+		const _ = this;
+
+		if (_.#morphEngine === engine) return;
+
+		_.#unwireMorphEngine();
+		_.#morphEngine = engine || null;
+
+		if (_.#morphEngine) {
+			_.setAttribute('morph', '');
+			_.#wireMorphEngine();
+		} else {
+			_.removeAttribute('morph');
+		}
 	}
 
 	// Read-only properties

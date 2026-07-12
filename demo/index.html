@@ -533,6 +533,109 @@
         box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.04);
       }
 
+      /* Morph transport */
+      .morph-trigger-card {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+        width: min(100%, 340px);
+        min-height: 190px;
+        padding: 1.5rem;
+        font-family: var(--font-body);
+        color: var(--text);
+        text-align: left;
+        background-color: var(--surface-raised);
+        border: 1px solid var(--border-accent);
+        border-radius: 1rem;
+        box-shadow: 0 16px 36px rgba(0, 0, 0, 0.25);
+        cursor: pointer;
+        transition: border-color 0.2s ease, background-color 0.2s ease;
+      }
+
+      .morph-trigger-card:hover {
+        background-color: #242428;
+        border-color: var(--accent);
+      }
+
+      .morph-card-label {
+        font-family: var(--font-mono);
+        font-size: 0.65rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--accent);
+      }
+
+      .morph-card-title {
+        font-family: var(--font-display);
+        font-size: 1.65rem;
+        font-weight: 400;
+        line-height: 1.15;
+      }
+
+      .morph-card-copy {
+        color: var(--text-dim);
+        font-size: 0.85rem;
+        line-height: 1.55;
+      }
+
+      .morph-card-meta {
+        margin-top: auto;
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        color: var(--text-dim);
+      }
+
+      .morph-btn-row {
+        margin-top: 1.25rem;
+      }
+
+      #morph-dialog > dialog,
+      #morph-dialog-2 > dialog {
+        z-index: 10000000;
+        width: min(560px, calc(100vw - 3rem));
+        height: min(480px, calc(100vh - 6rem));
+        max-width: none;
+        max-height: none;
+        overflow: hidden;
+        color: var(--text);
+        background-color: var(--surface-raised);
+        border: 1px solid var(--border-accent);
+        border-radius: 1rem;
+        box-shadow: 0 30px 90px rgba(0, 0, 0, 0.72);
+      }
+
+      /* the button's dialog is smaller — a pill growing into a compact panel */
+      #morph-dialog-2 > dialog {
+        width: min(420px, calc(100vw - 3rem));
+        height: min(340px, calc(100vh - 6rem));
+      }
+
+      .morph-dialog-content {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        height: 100%;
+        padding: 2rem;
+      }
+
+      .morph-dialog-kicker {
+        margin-bottom: 0.75rem;
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--accent);
+      }
+
+      .morph-dialog-content .dialog-body {
+        max-width: 42ch;
+      }
+
+      .morph-dialog-content .dialog-footer {
+        margin-top: auto;
+      }
+
       /* Drawers sit flush against their edge — flatten the inner radius */
       dialog-panel[position='top'] > dialog {
         border-radius: 0 0 0.5rem 0.5rem;
@@ -1255,6 +1358,34 @@
           </div>
         </section>
 
+        <!-- ======== Morph Transport ======== -->
+        <section class="example">
+          <h2>Morph Transport</h2>
+          <p>
+            Attach a morph engine and pass the trigger to
+            <code>show()</code> for a spring-driven container transform
+            into the real modal dialog. Any element can be the source —
+            the card grows into one panel, the button into another, each
+            with its own engine, and closing springs each back to where
+            it came from. Click the scrim during the flight to reverse
+            it in place.
+          </p>
+
+          <div class="demo-surface">
+            <button class="morph-trigger-card" id="morph-card" type="button">
+              <span class="morph-card-label">Morph transport</span>
+              <span class="morph-card-title">A real dialog, with a softer landing.</span>
+              <span class="morph-card-copy">
+                The card becomes the modal surface, then hands off to the browser top layer.
+              </span>
+              <span class="morph-card-meta">Spring driven · reversible</span>
+            </button>
+            <div class="btn-row morph-btn-row">
+              <button class="btn" id="morph-btn" type="button">Open Dialog</button>
+            </div>
+          </div>
+        </section>
+
         <!-- ======== State Machine ======== -->
         <section class="example">
           <h2>State Machine</h2>
@@ -1437,6 +1568,60 @@
         </p>
       </footer>
     </div>
+
+    <!-- ======== Morph Dialog ======== -->
+    <dialog-panel id="morph-dialog" morph-display="flex">
+      <dialog aria-labelledby="morph-title">
+        <div class="morph-dialog-content">
+          <div class="dialog-header">
+            <div>
+              <div class="morph-dialog-kicker">Container transform</div>
+              <h2 id="morph-title">Closed in flight. Modal at rest.</h2>
+            </div>
+            <button class="close-btn" data-action-hide-dialog aria-label="Close">&times;</button>
+          </div>
+          <div class="dialog-body">
+            <p>
+              The spring renders this dialog in normal flow while it travels.
+              On the final frame, Dialog Panel promotes it with
+              <code>showModal()</code> so focus trapping and Escape behavior stay native.
+            </p>
+          </div>
+          <div class="dialog-footer">
+            <button class="dialog-btn dialog-btn-primary" data-action-hide-dialog>
+              Morph back
+            </button>
+          </div>
+        </div>
+      </dialog>
+    </dialog-panel>
+
+    <!-- ======== Morph Dialog (button source) ======== -->
+    <dialog-panel id="morph-dialog-2" morph-display="flex">
+      <dialog aria-labelledby="morph-title-2">
+        <div class="morph-dialog-content">
+          <div class="dialog-header">
+            <div>
+              <div class="morph-dialog-kicker">Same trick, smaller seed</div>
+              <h2 id="morph-title-2">Grown from a button.</h2>
+            </div>
+            <button class="close-btn" data-action-hide-dialog aria-label="Close">&times;</button>
+          </div>
+          <div class="dialog-body">
+            <p>
+              A separate panel with its own engine. The spring measures whatever
+              you hand to <code>show()</code> — pill radius, gold surface and all —
+              and gives the geometry back on the way out.
+            </p>
+          </div>
+          <div class="dialog-footer">
+            <button class="dialog-btn dialog-btn-primary" data-action-hide-dialog>
+              Morph back
+            </button>
+          </div>
+        </div>
+      </dialog>
+    </dialog-panel>
 
     <!-- ======== Basic Dialog ======== -->
     <dialog-panel id="basic-dialog">
@@ -1694,6 +1879,8 @@
       </dialog>
     </dialog-panel>
 
+    <!-- Local UMD copy from @magic-spells/morph-engine/dist/morph-engine.min.js -->
+    <script src="./morph-engine.min.js"></script>
     <script type="module">
       import './dialog-panel.esm.js';
 
@@ -1705,6 +1892,28 @@
       const outerDialog = document.getElementById('outer-dialog');
       const innerDialog = document.getElementById('inner-dialog');
       const logBody = document.getElementById('log-body');
+
+      // ---- Morph Transport ----
+      // friction nudged up from the 0.32 default for a slightly calmer settle
+      const morphPanel = document.getElementById('morph-dialog');
+      const morphCard = document.getElementById('morph-card');
+      morphPanel.morphEngine = new MorphEngine.MorphEngine({
+        friction: 0.36,
+        lockScroll: false,
+        zIndex: 10000000,
+      });
+      morphCard.addEventListener('click', () => morphPanel.show(morphCard));
+
+      // the button grows its own, smaller dialog — separate panel, separate
+      // engine (two engines must never share an element)
+      const morphPanel2 = document.getElementById('morph-dialog-2');
+      const morphBtn = document.getElementById('morph-btn');
+      morphPanel2.morphEngine = new MorphEngine.MorphEngine({
+        friction: 0.36,
+        lockScroll: false,
+        zIndex: 10000000,
+      });
+      morphBtn.addEventListener('click', () => morphPanel2.show(morphBtn));
 
       // ---- Basic Dialog ----
       document.getElementById('open-basic').addEventListener('click', (e) => {
