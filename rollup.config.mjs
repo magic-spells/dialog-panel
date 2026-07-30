@@ -32,17 +32,6 @@ export default [
 		},
 		plugins: [resolve(), cssPlugin],
 	},
-	// CommonJS build
-	{
-		input: 'src/dialog-panel.js',
-		output: {
-			file: `dist/${name}.cjs.js`,
-			format: 'cjs',
-			sourcemap: true,
-			exports: 'named',
-		},
-		plugins: [resolve(), cssPlugin],
-	},
 	// UMD build
 	{
 		input: 'src/dialog-panel.js',
