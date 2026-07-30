@@ -141,11 +141,25 @@ dialog-panel[position='right'] > dialog {
 5. The `state` attribute transitions: `shown` → `hiding` → `hidden`
 6. Focus returns to the trigger element
 
+### Native closes
+
+A dialog can also be closed out from under the panel — by submitting a
+`<form method="dialog">` inside it, or by calling `panel.dialog.close()`
+directly. There is no exit animation to play in that case, so the panel
+skips `hiding` and settles straight to `hidden`, firing `hidden` and
+returning focus as usual. `beforeHide` is not fired: it is cancelable,
+and cancelling cannot reopen a dialog the browser has already closed.
+
+The dialog's `returnValue` — the value of the submit button in a
+`<form method="dialog">` — is reported as `result` on the `hidden` event.
+
 ## State Machine
 
 ```
 hidden → showing → shown → hiding → hidden
 ```
+
+A native close short-circuits that path: `shown → hidden`.
 
 The `state` attribute on `<dialog-panel>` drives all CSS animations:
 
@@ -184,9 +198,13 @@ dialog-panel[state='hidden'] > dialog { /* hidden */ }
 | `beforeHide` | Yes | Fired before hiding. Call `preventDefault()` to cancel. |
 | `hidden` | No | Fired after hide animation completes. |
 
+`beforeHide` is skipped on a native close — see [Native
+closes](#native-closes).
+
 Event `detail` includes:
 - `triggerElement` - Element that triggered the action
-- `result` - Value from `data-result` attribute (if any)
+- `result` - Value from `data-result` attribute, or the dialog's
+  `returnValue` on a native close (if any)
 - `state` - Current state
 
 ### Data Attributes

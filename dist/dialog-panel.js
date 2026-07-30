@@ -151,15 +151,39 @@
 			};
 			_.#dialog.addEventListener('cancel', _.#handlers.cancel);
 
-			// Cover browser force-close paths that bypass the cancel event
+			// Cover force-close paths that bypass the cancel event: a
+			// <form method="dialog"> submit, or app code calling dialog.close().
+			//
+			// Invariant: the panel must never read state='shown' while the dialog
+			// is closed. The overlay opacity, the page scroll lock, and show()'s
+			// own early return all key on that state, so a panel left there after
+			// a native close is invisible, keeps the page locked, and can never be
+			// reopened.
+			//
+			// The `close` event is queued rather than dispatched synchronously, so
+			// every close this component drives itself has already moved the state
+			// past 'shown' by the time this runs. Reaching here means something
+			// else closed the dialog.
 			_.#handlers.close = () => {
-				if (
-					_.#morphEngine?.state === 'shown' &&
-					_.#state === 'shown' &&
-					!_.#dialog.open
-				) {
+				if (_.#state !== 'shown' || _.#dialog.open) return;
+
+				// A morph engine owns its own exit, so it still routes through
+				// hide() exactly as before
+				if (_.#morphEngine?.state === 'shown') {
 					_.hide();
+					return;
 				}
+
+				// Everything else repairs straight to 'hidden' instead of running
+				// hide(). The dialog is already gone, so there is no exit
+				// transition left to play: transitionend never fires on a
+				// display:none dialog, and hide() would idle in 'hiding' —
+				// refusing every show() — until its 700ms fallback. beforeHide is
+				// not offered either. It is cancelable, and cancelling cannot
+				// reopen a dialog the browser has already closed; it would only
+				// strand the panel in the broken state again.
+				_.#result = _.#dialog.returnValue || _.#result;
+				_.#finalizeHidden();
 			};
 			_.#dialog.addEventListener('close', _.#handlers.close);
 		}
@@ -217,7 +241,7 @@
 		 * @private
 		 */
 		#handleMorphHidden() {
-			this.#finalizeMorphHide();
+			this.#finalizeHidden();
 		}
 
 		/**
@@ -225,14 +249,16 @@
 		 * @private
 		 */
 		#handleMorphStop() {
-			this.#finalizeMorphHide();
+			this.#finalizeHidden();
 		}
 
 		/**
-		 * Restore the component's hidden state after a morph ends
+		 * Close out to the hidden state without an exit animation — shared by a
+		 * settled or interrupted morph and by the force-close repair, both of
+		 * which arrive with nothing left to animate
 		 * @private
 		 */
-		#finalizeMorphHide() {
+		#finalizeHidden() {
 			const _ = this;
 
 			if (_.#dialog.open) _.#dialog.close();
