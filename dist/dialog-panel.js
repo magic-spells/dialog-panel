@@ -165,10 +165,55 @@
 			// past 'shown' by the time this runs. Reaching here means something
 			// else closed the dialog.
 			_.#handlers.close = () => {
-				if (_.#state !== 'shown' || _.#dialog.open) return;
+				const forceClosedDirect =
+					(_.#state === 'showing' || _.#state === 'shown') &&
+					_.#morphEngine?.animatesDialog &&
+					!_.#dialog.open;
+
+				if (forceClosedDirect) {
+					_.#result = _.#dialog.returnValue || _.#result;
+					_.#morphEngine.stop();
+					if (_.#state !== 'hidden') _.#finalizeHidden();
+					return;
+				}
+
+				const forceClosedShown =
+					_.#state === 'shown' && !_.#dialog.open;
+
+				// The same break one state earlier: a force-close landing
+				// between showModal() and the frame that promotes to 'shown'.
+				// Left alone that pending frame writes state='shown' onto a
+				// closed dialog and re-creates the exact stuck panel the
+				// 'shown' repair exists to prevent.
+				//
+				// #pendingRAF is what identifies a CSS open: it is armed in the
+				// same task as showModal() and nulled by the frame that
+				// promotes, so it is non-null for exactly as long as the panel
+				// sits in a CSS 'showing'. Engine paths never arm it and are
+				// repaired by their own choreography. That also excludes a
+				// proxy reversal, which can still be holding the queued close
+				// event of the hide it reversed.
+				const forceClosedShowing =
+					_.#state === 'showing' &&
+					_.#pendingRAF !== null &&
+					!_.#dialog.open;
+
+				if (!forceClosedShown && !forceClosedShowing) return;
+
+				// Cancel the promotion before repairing, mirroring
+				// disconnectedCallback — #finalizeHidden below sets 'hidden' and
+				// a surviving frame would overwrite it with 'shown'. Inert in
+				// 'shown', where the promoting frame already nulled the handle.
+				// #pendingTimeout needs no matching clear: #waitForTransition
+				// does not run until that same promotion frame.
+				if (_.#pendingRAF) {
+					cancelAnimationFrame(_.#pendingRAF);
+					_.#pendingRAF = null;
+				}
 
 				// A morph engine owns its own exit, so it still routes through
-				// hide() exactly as before
+				// hide() exactly as before. Only reachable from 'shown' — a
+				// morph 'showing' never passes the guard above
 				if (_.#morphEngine?.state === 'shown') {
 					_.hide();
 					return;
@@ -284,12 +329,14 @@
 		 */
 		show(triggerEl = null) {
 			const _ = this;
+			const engine = _.#morphEngine;
+			const direct = !!engine?.animatesDialog;
 
 			// Check if already showing/shown
 			if (_.#state === 'showing' || _.#state === 'shown') return true;
 
 			const reversingMorph =
-				_.#state === 'hiding' && _.#morphEngine?.state === 'hiding';
+				_.#state === 'hiding' && engine?.state === 'hiding';
 
 			// CSS transitions cannot reverse while hiding
 			if (_.#state === 'hiding' && !reversingMorph) return false;
@@ -308,12 +355,28 @@
 			// Set state to 'showing'
 			_.#setState('showing');
 
-			if (_.#morphEngine && (triggerEl || reversingMorph)) {
-				_.#morphEngine.show({
+			if (engine && (direct || triggerEl || reversingMorph)) {
+				engine.show({
 					from: _.#triggerElement,
 					to: _.#dialog,
 					display: _.getAttribute('morph-display') || 'block',
 				});
+
+				// Only a direct engine is promoted here — its hidden frame is already
+				// painted, so the promotion repaint lands on nothing visible. A proxy
+				// engine keeps the legacy choreography: promotion waits for its
+				// settled 'shown'.
+				if (direct && !_.#dialog.open) {
+					_.#dialog.showModal();
+				}
+
+				if (
+					direct &&
+					engine.state === 'shown' &&
+					_.#state === 'showing'
+				) {
+					_.#handleMorphShown();
+				}
 				return true;
 			}
 
@@ -344,15 +407,19 @@
 		 */
 		hide(triggerEl = null) {
 			const _ = this;
+			const engine = _.#morphEngine;
+			const direct = !!engine?.animatesDialog;
 
 			// Check if already hiding/hidden
 			if (_.#state === 'hiding' || _.#state === 'hidden') return true;
 
 			const reversingMorph =
-				_.#state === 'showing' && _.#morphEngine?.state === 'showing';
+				_.#state === 'showing' && engine?.state === 'showing';
 
 			// CSS transitions cannot reverse while showing
-			if (_.#state === 'showing' && !reversingMorph) return false;
+			if (_.#state === 'showing' && !reversingMorph && !direct) {
+				return false;
+			}
 
 			// Capture result from trigger element
 			_.#result = triggerEl?.dataset?.result ?? null;
@@ -368,10 +435,23 @@
 				return false;
 			}
 
-			if (reversingMorph || _.#morphEngine?.state === 'shown') {
+			if (direct) {
+				_.#hideTriggerElement = triggerEl;
+
+				if (engine.state !== 'showing' && engine.state !== 'shown') {
+					_.#finalizeHidden();
+					return true;
+				}
+
+				engine.hide();
+				_.#setState('hiding');
+				return true;
+			}
+
+			if (reversingMorph || engine?.state === 'shown') {
 				_.#hideTriggerElement = triggerEl;
 				if (_.#dialog.open) _.#dialog.close();
-				_.#morphEngine.hide();
+				engine.hide();
 				_.#setState('hiding');
 				return true;
 			}
@@ -482,6 +562,11 @@
 			const _ = this;
 
 			if (_.#morphEngine === engine) return;
+
+			if (_.#morphEngine && _.#state !== 'hidden') {
+				_.#morphEngine.stop();
+				if (_.#state !== 'hidden') _.#finalizeHidden();
+			}
 
 			_.#unwireMorphEngine();
 			_.#morphEngine = engine || null;

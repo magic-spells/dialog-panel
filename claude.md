@@ -37,7 +37,7 @@ hidden <──close()── hiding <─────────┘
 3. **Double RAF for animations** - Ensures browser paints initial state before transitioning
 4. **Bounding rect click detection** - Detects backdrop clicks via coordinates (native `::backdrop` is transparent)
 5. **stopPropagation on close** - Prevents nested dialogs from closing parents
-6. **Force-close repair** - The dialog's `close` event repairs the state machine whenever the panel reads `shown` while the dialog is closed
+6. **Force-close repair** - The dialog's `close` event repairs the state machine whenever the panel reads `shown`, or a CSS-path `showing`, while the dialog is closed
 
 ## File Structure
 
@@ -88,7 +88,12 @@ The `close` event is a queued task rather than a synchronous callback, so every 
 - `beforeHide` is not fired on the direct repair. It is cancelable, and cancelling cannot reopen a dialog the browser has already closed; it would only strand the panel in the broken state again.
 - `dialog.returnValue` is adopted as `#result` so a `<form method="dialog">` submit reports its button value on the `hidden` event.
 
-Still uncovered: a force-close that lands during `showing` (between `showModal()` and the second RAF). The listener returns early, then the pending frame promotes the panel to `shown` on a closed dialog. It needs the pending RAF cancelled as well, and requires app code to close the dialog within two frames of opening it.
+A force-close landing during `showing` — between `showModal()` and the frame that promotes the panel — is repaired too. It used to return early, and the pending frame then wrote `state='shown'` onto a closed dialog: the same stuck panel one state earlier. The listener now cancels `#pendingRAF` (mirroring `disconnectedCallback`) before running the same non-morph repair.
+
+- `#pendingRAF` is what identifies a CSS open. It is armed in the same task as `showModal()` and nulled by the frame that promotes, so it is non-null for exactly as long as the panel sits in a CSS `showing`.
+- A morph show never arms it — `showModal()` is deferred to `#handleMorphShown` — so the dialog is closed *on purpose* for the whole of a morph `showing` and must not be repaired. The RAF test is what excludes it. Testing only `state === 'showing' && !dialog.open` breaks a morph reversal: `hide()` closes the dialog and the platform queues the `close` event, so a `show()` that reverses in the same task leaves that event to arrive during the new morph `showing` and tear it down to `hidden`.
+- The morph branch therefore stays exactly as it was and is only reachable from `shown`.
+- `#pendingTimeout` needs no matching clear: `#waitForTransition` does not run until that same promotion frame, so nothing is armed during a CSS `showing`. Nor can a hide's timeout survive into one — `show()` refuses a non-morph `hiding`, and the morph hide path never calls `#waitForTransition`.
 
 ### Nested Dialog Support
 

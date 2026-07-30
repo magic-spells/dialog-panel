@@ -90,7 +90,7 @@ export default [
 						serve({
 							contentBase: ['dist', 'demo'],
 							open: true,
-							port: 3010,
+							port: 3028,
 						}),
 						copy({
 							targets: [

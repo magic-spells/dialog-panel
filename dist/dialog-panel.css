@@ -43,14 +43,23 @@ dialog-panel:not(:has(dialog-backdrop)) > dialog::backdrop {
 	transition: opacity 0.3s ease-out;
 }
 
-/* Custom dialog-backdrop element */
+/* Custom dialog-backdrop element.
+
+   The z-index is deliberately modest and tokenized. An extreme value
+   (this used to be 9999999) puts a backdrop-filter-capable layer at the
+   very top of the stacking order, and every showModal() top-layer
+   insertion then forces the compositor to re-sort and re-rasterize
+   around it — a whole-page GPU job landing on the open frame, visible
+   as an intermittent, load-dependent flicker on heavy pages. A sane
+   value keeps the layer order stable across promotion; raise the token
+   only as far as the page's own stacking actually requires. */
 dialog-backdrop {
 	position: fixed;
 	background: rgba(0, 0, 0, 0.3);
 	opacity: 0;
 	transition: opacity 0.3s ease-out;
 	pointer-events: none;
-	z-index: 9999999;
+	z-index: var(--dialog-backdrop-z-index, 1000);
 	top: 50%;
 	left: 50%;
 	width: 200vw;
