@@ -31,6 +31,7 @@ class DialogPanel extends HTMLElement {
 		dialogClick: null,
 		cancel: null,
 		close: null,
+		morphReveal: null,
 		morphShown: null,
 		morphHidden: null,
 		morphStop: null,
@@ -237,15 +238,39 @@ class DialogPanel extends HTMLElement {
 		if (!_.#morphEngine || _.#morphListenersAttached) return;
 
 		if (!_.#handlers.morphShown) {
+			_.#handlers.morphReveal = _.#handleMorphReveal.bind(_);
 			_.#handlers.morphShown = _.#handleMorphShown.bind(_);
 			_.#handlers.morphHidden = _.#handleMorphHidden.bind(_);
 			_.#handlers.morphStop = _.#handleMorphStop.bind(_);
 		}
 
+		_.#morphEngine.on('reveal', _.#handlers.morphReveal);
 		_.#morphEngine.on('shown', _.#handlers.morphShown);
 		_.#morphEngine.on('hidden', _.#handlers.morphHidden);
 		_.#morphEngine.on('stop', _.#handlers.morphStop);
 		_.#morphListenersAttached = true;
+	}
+
+	/**
+	 * Promote a proxy engine's target at its reveal point — the target is
+	 * still at opacity 0 and the scrim only partially faded, so the top-layer
+	 * insertion (dialog + ::backdrop) lands over the least visible glass.
+	 * Promoting at settle instead inserts above a fully visible
+	 * backdrop-filter layer, which the compositor re-rasterizes — a visible
+	 * shimmer on GPU-heavy pages.
+	 * @param {Object} detail - Reveal event detail
+	 * @private
+	 */
+	#handleMorphReveal(detail) {
+		const _ = this;
+
+		if (
+			_.#state === 'showing' &&
+			detail?.to === _.#dialog &&
+			!_.#dialog.open
+		) {
+			_.#dialog.showModal();
+		}
 	}
 
 	/**
@@ -257,6 +282,7 @@ class DialogPanel extends HTMLElement {
 
 		if (!_.#morphEngine || !_.#morphListenersAttached) return;
 
+		_.#morphEngine.off('reveal', _.#handlers.morphReveal);
 		_.#morphEngine.off('shown', _.#handlers.morphShown);
 		_.#morphEngine.off('hidden', _.#handlers.morphHidden);
 		_.#morphEngine.off('stop', _.#handlers.morphStop);
