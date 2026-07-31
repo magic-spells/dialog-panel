@@ -32,17 +32,6 @@ export default [
 		},
 		plugins: [resolve(), cssPlugin],
 	},
-	// CommonJS build
-	{
-		input: 'src/dialog-panel.js',
-		output: {
-			file: `dist/${name}.cjs.js`,
-			format: 'cjs',
-			sourcemap: true,
-			exports: 'named',
-		},
-		plugins: [resolve(), cssPlugin],
-	},
 	// UMD build
 	{
 		input: 'src/dialog-panel.js',
@@ -90,7 +79,7 @@ export default [
 						serve({
 							contentBase: ['dist', 'demo'],
 							open: true,
-							port: 3010,
+							port: 3028,
 						}),
 						copy({
 							targets: [

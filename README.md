@@ -31,6 +31,26 @@ Or include directly in HTML:
 <link rel="stylesheet" href="https://unpkg.com/@magic-spells/dialog-panel/css/min" />
 ```
 
+## Module formats
+
+| File | Format | Use |
+|------|--------|-----|
+| `dist/dialog-panel.esm.js` | ESM | `import` — bundlers, `<script type="module">` |
+| `dist/dialog-panel.js` | UMD | classic `<script src>`, exposes global `DialogPanel` |
+| `dist/dialog-panel.min.js` | UMD, minified | what the unpkg URL above resolves to |
+| `dist/dialog-panel.css` | CSS | `@magic-spells/dialog-panel/css` |
+| `dist/dialog-panel.min.css` | CSS, minified | `@magic-spells/dialog-panel/css/min` |
+
+### Upgrading from 1.x
+
+**2.0.0 drops the CommonJS build.** `dist/dialog-panel.cjs.js`, the `main`
+field, and the `require` export condition are all gone. Nothing else changed —
+the component API, events, attributes, and CSS are identical to 1.3.0.
+
+If you were using `require('@magic-spells/dialog-panel')`, switch to `import`.
+The plain `<script src>` CDN snippet is unaffected: the UMD builds are still
+published, and `window.DialogPanel` still works.
+
 ## Usage
 
 ```html
@@ -84,11 +104,16 @@ engine to the writable `morphEngine` property and pass the source element to
 </script>
 ```
 
-The dialog stays closed while the engine renders it in normal flow, then moves
-into the browser top layer with `showModal()` on the spring's settle frame.
 Calling `hide()` during the outbound flight or `show()` during the return flight
 reverses the active spring in place. Calling `show()` without a trigger element
 uses the existing CSS transition path instead.
+
+When the engine animates a stand-in element in normal flow, the dialog stays
+closed for the whole flight and moves into the browser top layer with
+`showModal()` on the spring's settle frame. An engine that reports
+`animatesDialog` animates the real `<dialog>` in the top layer instead, so the
+panel opens it up front and the flight runs on the modal itself. Either kind is
+finalized by the engine's own `hidden` and `stop` events.
 
 `morph-display` controls the display value used while measuring and revealing a
 closed target (`block` by default). Assigning an engine automatically adds the
@@ -230,6 +255,12 @@ Or in HTML:
 ```html
 <link rel="stylesheet" href="https://unpkg.com/@magic-spells/dialog-panel/css/min" />
 ```
+
+### Custom properties
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `--dialog-backdrop-z-index` | `1000` | Stacking level of `<dialog-backdrop>`. Raise it only as far as your page's own stacking requires — very large values can cause compositor flicker when `showModal()` promotes the dialog to the top layer. |
 
 ### Custom Styling
 
