@@ -716,7 +716,7 @@ test('swapping a direct engine mid-flight stops and finalizes the old run', () =
 	assert.deepEqual(names(events), ['hidden']);
 });
 
-test('a proxy engine promotes only at its settled shown — reveal is not a transport event', () => {
+test('a proxy engine promotes at its reveal point and shown does not re-open', () => {
 	const { panel, dialog, events } = makePanel();
 	const engine = makeMorphEngine();
 	const trigger = makeTrigger();
@@ -724,12 +724,13 @@ test('a proxy engine promotes only at its settled shown — reveal is not a tran
 	panel.morphEngine = engine;
 	panel.show(trigger);
 
-	// MorphEngine emits reveal mid-flight; the transport deliberately ignores
-	// it (1.2.x behavior) — a mid-flight top-layer promotion is the proxy
-	// path's job to avoid, and its dialog stays closed until settle.
+	// The target is still at opacity 0 at reveal, so promotion lands on a
+	// surface nothing visible depends on — promoting at settle instead
+	// inserts dialog + ::backdrop above a fully visible scrim, which the
+	// compositor re-rasterizes (the open-flicker class).
 	engine.emit('reveal', { to: dialog });
-	assert.equal(dialog.open, false);
-	assert.equal(dialog.showModalCalls, 0);
+	assert.equal(dialog.open, true);
+	assert.equal(dialog.showModalCalls, 1);
 	assert.equal(panel.state, 'showing');
 
 	engine.state = 'shown';
@@ -738,6 +739,41 @@ test('a proxy engine promotes only at its settled shown — reveal is not a tran
 	assert.equal(panel.state, 'shown');
 	assert.equal(dialog.showModalCalls, 1);
 	assert.deepEqual(names(events), ['beforeShow', 'shown']);
+});
+
+test('a reveal for another element does not promote', () => {
+	const { panel, dialog } = makePanel();
+	const engine = makeMorphEngine();
+
+	panel.morphEngine = engine;
+	panel.show(makeTrigger());
+	engine.emit('reveal', { to: new StubElement() });
+
+	assert.equal(dialog.open, false);
+	assert.equal(dialog.showModalCalls, 0);
+	assert.equal(panel.state, 'showing');
+});
+
+test('a reveal while hiding does not re-promote', () => {
+	const { panel, dialog } = makePanel();
+	const engine = makeMorphEngine();
+
+	panel.morphEngine = engine;
+	panel.show(makeTrigger());
+	engine.emit('reveal', { to: dialog });
+	engine.state = 'shown';
+	engine.emit('shown');
+	panel.hide();
+
+	assert.equal(panel.state, 'hiding');
+	assert.equal(dialog.open, false);
+
+	// During a show→hide reversal MorphEngine's #toElement is still the
+	// dialog, so a reveal reporting the dialog while hiding must be refused.
+	engine.emit('reveal', { to: dialog });
+
+	assert.equal(dialog.open, false);
+	assert.equal(dialog.showModalCalls, 1);
 });
 
 test('detaching the engine mid-flight finalizes hidden', () => {

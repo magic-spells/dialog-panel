@@ -68,16 +68,15 @@
         overflow-x: clip;
       }
 
-      /* EXPERIMENT 2: single-backdrop architecture. The custom
-         <dialog-backdrop> is removed from rendering entirely and the native
-         ::backdrop becomes the one scrim — it lives in the top layer, so it
-         appears and leaves atomically with the dialog instead of a second
-         viewport surface being inserted above a live glass layer.
-         Outside-click dismissal works natively again (::backdrop catches
-         clicks and reports the dialog as target). */
-      /* Non-morph panels: the dialog stays open through the whole exit, so
-         the ::backdrop can own the scrim end-to-end. The element scrim is
-         removed entirely — one surface, born and dying with the dialog. */
+      /* Single-backdrop scrim architecture (see sheet's and bottom-sheet's
+         package CSS for the productized form). For non-morph panels the
+         native ::backdrop IS the scrim: it lives in the top layer, born and
+         dying atomically with the dialog, so showModal() never inserts a
+         surface above a live glass layer — the compositor re-sort that made
+         every open flicker on GPU-heavy pages. These panels keep the dialog
+         open through the whole exit, so the ::backdrop owns the fade
+         end-to-end, and its clicks still report the dialog as target, so
+         outside-click dismissal is unchanged. */
       dialog-panel:not([morph]) > dialog-backdrop {
         display: none !important;
       }
@@ -110,11 +109,13 @@
         transition: opacity 0.2s ease-in;
       }
 
-      /* Morph panels: ::backdrop restored (transparent, stock behavior) for
-         live CSS experimentation — the element scrim still paints their
-         glass. Note their exit constraint: the native dialog closes at
-         hide-START, so anything painted on their ::backdrop dies instantly
-         at that moment. */
+      /* Morph panels keep the element scrim, by necessity, not nostalgia:
+         their blob flies in normal flow, so the scrim must sit BENEATH it
+         (a top-layer ::backdrop would blur the blob), and their dialog
+         closes at hide-START, so anything painted on their ::backdrop would
+         die instantly with no exit fade. Their ::backdrop stays transparent
+         stock — cheap to insert at the reveal promotion, and it keeps
+         outside-click routing alive. */
 
       /* Grain overlay. Modest z-index on purpose: above page content
          (.task-panel sits at 950) but below the dialog-backdrop scrim (1000),
