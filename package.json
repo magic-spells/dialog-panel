@@ -1,6 +1,6 @@
 {
   "name": "@magic-spells/dialog-panel",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "A lightweight web component wrapper for native <dialog> elements with state-driven animations.",
   "author": "Cory Schulz",
   "license": "MIT",
@@ -58,7 +58,7 @@
   "devDependencies": {
     "@eslint/js": "^9.38.0",
     "@rollup/plugin-node-resolve": "^15.2.3",
-    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-terser": "^1.0.0",
     "eslint": "^9.38.0",
     "globals": "^15.15.0",
     "prettier": "^3.3.3",
