@@ -20,5 +20,8 @@ Thumbs.db
 # Cache
 .eslintcache
 
+# Playwright MCP session output
+.playwright-mcp/
+
 # Package files
 *.tgz
