@@ -267,8 +267,21 @@ dialog-panel[morph][state] > dialog {
 	transition: none;
 }
 
-/* Bring in the scrim during the outbound morph flight */
+/* Bring in the scrim during the outbound morph flight. Unlike the CSS
+   path — which holds opacity 0 through `showing` and fades on the flip
+   to `shown` — the morph path paints the scrim at full opacity in
+   `showing` itself, because promotion to `shown` waits for the spring
+   to settle. That makes `showing` both the first rendered frame and
+   the opacity-1 frame, so a transition alone has nothing to start
+   from; @starting-style supplies the missing first-frame value. Where
+   unsupported the scrim appears instantly, which was the old behavior. */
 dialog-panel[morph][state='showing'] > dialog-backdrop {
 	opacity: 1;
 	pointer-events: auto;
+}
+
+@starting-style {
+	dialog-panel[morph][state='showing'] > dialog-backdrop {
+		opacity: 0;
+	}
 }
