@@ -68,54 +68,14 @@
         overflow-x: clip;
       }
 
-      /* Single-backdrop scrim architecture (see sheet's and bottom-sheet's
-         package CSS for the productized form). For non-morph panels the
-         native ::backdrop IS the scrim: it lives in the top layer, born and
-         dying atomically with the dialog, so showModal() never inserts a
-         surface above a live glass layer — the compositor re-sort that made
-         every open flicker on GPU-heavy pages. These panels keep the dialog
-         open through the whole exit, so the ::backdrop owns the fade
-         end-to-end, and its clicks still report the dialog as target, so
-         outside-click dismissal is unchanged. */
-      dialog-panel:not([morph]) > dialog-backdrop {
-        display: none !important;
-      }
-
-      dialog-panel:not([morph]):has(dialog-backdrop) > dialog::backdrop {
-        background:
-          url('./bg-noise.png') repeat 0 0 / 50px 50px,
-          rgba(0, 0, 0, 0.5);
-        backdrop-filter: blur(4px) saturate(115%);
-        -webkit-backdrop-filter: blur(4px) saturate(115%);
-        opacity: 1;
-        /* Front-loaded curve — the scrim reaches most of its opacity early,
-           reading as in-sync with the panel's scale+fade instead of
-           trailing it. */
-        transition: opacity 0.3s var(--ease-out);
-      }
-
-      /* The ::backdrop is born at showModal() — @starting-style makes its
-         entrance fade run from that creation frame, so it never waits for a
-         later state flip. */
-      @starting-style {
-        dialog-panel:not([morph]):has(dialog-backdrop) > dialog::backdrop {
-          opacity: 0;
-        }
-      }
-
-      dialog-panel[state='hiding']:not([morph]):has(dialog-backdrop)
-        > dialog::backdrop {
-        opacity: 0;
-        transition: opacity 0.2s ease-in;
-      }
-
-      /* Morph panels keep the element scrim, by necessity, not nostalgia:
-         their blob flies in normal flow, so the scrim must sit BENEATH it
-         (a top-layer ::backdrop would blur the blob), and their dialog
-         closes at hide-START, so anything painted on their ::backdrop would
-         die instantly with no exit fade. Their ::backdrop stays transparent
-         stock — cheap to insert at the reveal promotion, and it keeps
-         outside-click routing alive. */
+      /* Every panel — morph or not — paints its overlay on the one
+         <dialog-backdrop> element (see the rule further down). The native
+         ::backdrop is kept transparent by the package for all panels, so
+         there is nothing to neutralise here and no second way to do this.
+         A morph panel REQUIRES the element: its blob flies in normal flow,
+         so the overlay has to sit beneath it, which a top-layer ::backdrop
+         never can. Standardising on the element is what lets a consumer
+         attach a morph engine later without rewriting any overlay CSS. */
 
       /* Grain overlay. Modest z-index on purpose: above page content
          (.task-panel sits at 950) but below the dialog-backdrop scrim (1000),

@@ -9,7 +9,7 @@ A lightweight web component wrapper for native `<dialog>` elements with state-dr
 - **Zero dependencies** - Uses native `<dialog>` for focus trapping and accessibility
 - **Lightweight** - ~3.4kb minified
 - **State-driven animations** - CSS transitions based on `state` attribute
-- **Cross-browser** - Custom `<dialog-backdrop>` for consistent animations (including Firefox)
+- **One overlay surface** - Always style `<dialog-backdrop>`; the same rule holds in every package
 - **Accessible** - Native dialog handles focus trap, escape key, and ARIA
 - **Nested dialogs** - Proper stacking and event isolation
 
@@ -317,11 +317,29 @@ Each dialog manages its own backdrop and events independently.
 
 ## Dialog Backdrop
 
-The `<dialog-backdrop>` element is auto-created if not present. It provides:
+`<dialog-backdrop>` is **the** overlay surface. It is auto-created if not present, so it
+is always there and you never have to opt in.
 
-- Consistent cross-browser animations (native `::backdrop` doesn't animate in Firefox)
-- Click-to-close functionality
-- Custom styling support
+**Style the overlay here, always.** Never style `dialog::backdrop` — the package keeps the
+native pseudo-element transparent on every panel, so anything you paint there is either
+invisible or fighting the element. One rule, every panel, every package in the family
+(`sheet`, `bottom-sheet`, and anything downstream all work the same way).
+
+```css
+dialog-backdrop {
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px) saturate(115%);
+}
+```
+
+Why an element rather than the native pseudo-element:
+
+- **It survives adding a morph transport later.** A morph engine flies its blob in normal
+  flow, so the overlay has to be something the blob can pass *above*. `::backdrop` lives in
+  the top layer and would paint over the blob, blurring the very thing in flight. Because
+  the overlay is already an element, attaching a morph engine needs **no CSS changes at all**.
+- **Click-to-close** is built in.
+- **Consistent animation** across browsers, driven by the `state` attribute.
 
 ## Preventing Close
 
