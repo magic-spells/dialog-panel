@@ -99,6 +99,13 @@ they read as backdrop clicks and dismiss the host (fixed in 2.0.2). The target
 test alone is not enough either: a click on the dialog's own padding or border
 also targets the dialog and must not dismiss.
 
+The target gate has a second effect: a keyboard-activated
+`[data-action-hide-dialog]` button synthesises a click at `0,0`, which the
+rect-only check used to swallow as a backdrop tap (and `stopPropagation`
+before the panel's delegated handler saw the trigger, losing its
+`data-result`). It is a descendant target, so it now bubbles through to the
+panel's own click handler and hides with the button as `triggerElement`.
+
 ### Force-Close Repair
 
 A `<form method="dialog">` submit or a direct `panel.dialog.close()` closes the dialog without going through `hide()`, so the `close` listener has to repair the state machine. The invariant it enforces: **the panel must never read `state='shown'` while the dialog is closed.** The overlay opacity, the page scroll lock, and `show()`'s own early return all key on that state, so a panel left there is invisible, keeps the page locked, and can never be reopened.

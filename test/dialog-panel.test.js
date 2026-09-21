@@ -943,3 +943,24 @@ test('a descendant painted outside the box is not a backdrop click', () => {
 	assert.equal(dialog.open, true);
 	assert.deepEqual(names(events), []);
 });
+
+test('a keyboard-activated descendant click at 0,0 is left to bubble', () => {
+	const { panel, dialog, events } = makePanel();
+
+	openPanel(panel, dialog);
+	events.length = 0;
+
+	// Enter/Space on a [data-action-hide-dialog] button synthesises a click
+	// with no pointer, so clientX/Y are 0,0 — outside a centred dialog's
+	// box. Judged by coordinates alone it was dismissed here as a backdrop
+	// tap and propagation was stopped before the panel's own delegated
+	// handler could see the trigger, so the button's data-result was lost.
+	const button = new StubElement();
+	const event = Object.assign(new Event('click'), { clientX: 0, clientY: 0 });
+	Object.defineProperty(event, 'target', { value: button });
+	dialog.dispatchEvent(event);
+
+	assert.equal(event.cancelBubble, false);
+	assert.equal(panel.state, 'shown');
+	assert.deepEqual(names(events), []);
+});
