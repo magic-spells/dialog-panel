@@ -964,3 +964,49 @@ test('a keyboard-activated descendant click at 0,0 is left to bubble', () => {
 	assert.equal(panel.state, 'shown');
 	assert.deepEqual(names(events), []);
 });
+
+// ---- Cancel event target ----
+//
+// Escape on a modal dialog fires a `cancel` event on the dialog itself. But
+// `cancel` also bubbles up from descendants: an <input type="file"> fires
+// one when the user dismisses the OS file picker (Chrome 113+, Safari 16.4+,
+// Firefox 91+). Only the dialog's own cancel is an Escape.
+
+function cancelDialog(dialog, { target } = {}) {
+	const event = new Event('cancel', { bubbles: true, cancelable: true });
+	if (target) Object.defineProperty(event, 'target', { value: target });
+	dialog.dispatchEvent(event);
+	return event;
+}
+
+test('a cancel targeting the dialog is Escape and hides', () => {
+	const { panel, dialog, events } = makePanel();
+
+	openPanel(panel, dialog);
+	events.length = 0;
+
+	const event = cancelDialog(dialog);
+
+	assert.equal(event.defaultPrevented, true);
+	assert.equal(event.cancelBubble, true);
+	assert.equal(panel.state, 'hiding');
+	assert.deepEqual(names(events), ['beforeHide']);
+});
+
+test('a cancel bubbling from a descendant is not Escape and is left alone', () => {
+	const { panel, dialog, events } = makePanel();
+
+	openPanel(panel, dialog);
+	events.length = 0;
+
+	// an <input type="file"> whose OS picker the user dismissed — its cancel
+	// bubbles up here and must neither dismiss the host nor be swallowed
+	const fileInput = new StubElement();
+	const event = cancelDialog(dialog, { target: fileInput });
+
+	assert.equal(event.defaultPrevented, false);
+	assert.equal(event.cancelBubble, false);
+	assert.equal(panel.state, 'shown');
+	assert.equal(dialog.open, true);
+	assert.deepEqual(names(events), []);
+});

@@ -160,7 +160,7 @@ dialog-panel[position='right'] > dialog {
 3. The `state` attribute transitions: `hidden` → `showing` → `shown`
 4. Close via:
    - Clicking backdrop (a click on a descendant that paints outside the dialog's box — a fixed-position child, a nested full-screen overlay — is not a backdrop click and does not close it)
-   - Pressing Escape
+   - Pressing Escape (a `cancel` bubbling from a descendant — an `<input type="file">` whose picker was dismissed, a nested `<dialog>` — is not Escape and does not close it)
    - Clicking any element with `data-action-hide-dialog`
    - Calling `hide()`
 5. The `state` attribute transitions: `shown` → `hiding` → `hidden`
