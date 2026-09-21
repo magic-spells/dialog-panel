@@ -41,7 +41,7 @@ skipping `hiding` and the cancelable `beforeHide`. See
 1. **Native `<dialog>` with `showModal()`** - Browser handles focus trapping, accessibility, top-layer stacking
 2. **State attribute drives CSS** - No JS animation logic, all CSS transitions
 3. **Double RAF for animations** - Ensures browser paints initial state before transitioning
-4. **Bounding rect click detection** - Detects backdrop clicks via coordinates (native `::backdrop` is transparent)
+4. **Bounding rect click detection** - Detects backdrop clicks via coordinates (native `::backdrop` is transparent), gated on `e.target === dialog` so a descendant painted outside the box is never mistaken for the backdrop
 5. **stopPropagation on close** - Prevents nested dialogs from closing parents
 6. **Force-close repair** - The dialog's `close` event repairs the state machine whenever the panel reads `shown`, or a CSS-path `showing`, while the dialog is closed
 7. **Duck-typed morph transport** - The optional `morphEngine` property is called through a small structural interface, so `@magic-spells/morph-engine` stays a peer the consumer wires up, never a dependency of this package
@@ -82,11 +82,22 @@ disconnectedCallback() {
 Since native `::backdrop` is in the top layer (transparent), we detect clicks by comparing coordinates to dialog bounds:
 
 ```javascript
+if (e.target !== dialog) return;
 const rect = dialog.getBoundingClientRect();
 const clickedOutside =
   e.clientX < rect.left || e.clientX > rect.right ||
   e.clientY < rect.top || e.clientY > rect.bottom;
 ```
+
+Both halves are required. `::backdrop` has no DOM node, so a genuine backdrop
+click is dispatched on the dialog element itself — `e.target === dialog`. The
+rect test alone is not enough: a **descendant** can paint outside the dialog's
+box (a `position: fixed` child, a nested full-viewport overlay such as a photo
+lightbox, a popover anchored past the edge), and its clicks bubble to the
+dialog with coordinates in the viewport margins. Judged by coordinates alone
+they read as backdrop clicks and dismiss the host (fixed in 2.0.2). The target
+test alone is not enough either: a click on the dialog's own padding or border
+also targets the dialog and must not dismiss.
 
 ### Force-Close Repair
 
