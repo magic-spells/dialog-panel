@@ -159,7 +159,7 @@ dialog-panel[position='right'] > dialog {
 2. Call `show(triggerElement)` to open with animation
 3. The `state` attribute transitions: `hidden` → `showing` → `shown`
 4. Close via:
-   - Clicking backdrop
+   - Clicking backdrop (a click on a descendant that paints outside the dialog's box — a fixed-position child, a nested full-screen overlay — is not a backdrop click and does not close it)
    - Pressing Escape
    - Clicking any element with `data-action-hide-dialog`
    - Calling `hide()`

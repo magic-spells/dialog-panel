@@ -128,9 +128,23 @@
 			};
 			_.addEventListener('click', _.#handlers.click);
 
-			// Handle backdrop click - detect clicks outside dialog bounds
-			// This works because clicks on ::backdrop still fire on the dialog element
+			// Handle backdrop click - detect clicks outside dialog bounds.
+			//
+			// ::backdrop has no DOM node, so a click on it is dispatched on the
+			// dialog element itself: e.target === dialog. That is the first
+			// test. It is not sufficient on its own — a click on the dialog's
+			// own padding or border also targets the dialog — so the click must
+			// additionally land outside the dialog's box.
+			//
+			// The rect test is not sufficient on its own either. A descendant
+			// can paint outside the dialog's box — a position: fixed child, a
+			// nested full-viewport overlay, a popover anchored past the edge —
+			// and its clicks bubble up here with coordinates in the viewport
+			// margins. Judged by coordinates alone those read as backdrop
+			// clicks and dismiss the host. A descendant target can never be a
+			// backdrop click, whatever its coordinates.
 			_.#handlers.dialogClick = (e) => {
+				if (e.target !== _.#dialog) return;
 				const rect = _.#dialog.getBoundingClientRect();
 				const clickedOutside =
 					e.clientX < rect.left ||
