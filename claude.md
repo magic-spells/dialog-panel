@@ -106,6 +106,35 @@ before the panel's delegated handler saw the trigger, losing its
 `data-result`). It is a descendant target, so it now bubbles through to the
 panel's own click handler and hides with the button as `triggerElement`.
 
+### Cancel Event Target
+
+Escape on a modal dialog fires a native `cancel` event on the dialog element
+itself, and the `cancel` listener intercepts it to animate the close instead
+of letting the browser snap it shut. But `cancel` **bubbles**, and descendants
+fire it too: an `<input type="file">` fires `cancel` when the user dismisses
+the OS file picker (Chrome 113+, Safari 16.4+, Firefox 91+), and a nested
+`<dialog>` fires its own on Escape. Treated as Escape those closed the host —
+cancelling an "Add photo" picker dismissed the whole panel (fixed in 2.0.3).
+
+```javascript
+if (e.target !== dialog) return;
+e.preventDefault();
+e.stopPropagation();
+hide();
+```
+
+The same target gate as the backdrop click, for the same reason: the
+dialog's own Escape `cancel` always targets the dialog, so a descendant
+target can never be one. A descendant's `cancel` is left entirely alone —
+not `preventDefault`ed, not stopped — so whatever fired it keeps its own
+default and its ancestors still see it.
+
+The `close` listener has no matching exposure: `close` does **not** bubble,
+so a nested `<dialog>` closing (a lightbox inside the panel) never reaches
+the host's listener. And the repair it guards is additionally keyed on
+`!dialog.open` of the host, so a stray `close` with the host still open is a
+no-op either way.
+
 ### Force-Close Repair
 
 A `<form method="dialog">` submit or a direct `panel.dialog.close()` closes the dialog without going through `hide()`, so the `close` listener has to repair the state machine. The invariant it enforces: **the panel must never read `state='shown'` while the dialog is closed.** The overlay opacity, the page scroll lock, and `show()`'s own early return all key on that state, so a panel left there is invisible, keeps the page locked, and can never be reopened.

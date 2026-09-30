@@ -154,8 +154,17 @@ class DialogPanel extends HTMLElement {
 		};
 		_.#dialog.addEventListener('click', _.#handlers.dialogClick);
 
-		// Handle escape key - intercept native cancel and animate close
+		// Handle escape key - intercept native cancel and animate close.
+		//
+		// Escape on a modal dialog fires `cancel` on the dialog element
+		// itself: e.target === dialog, always. But `cancel` bubbles, and
+		// descendants fire it too — an <input type="file"> when the user
+		// dismisses the OS file picker (Chrome 113+, Safari 16.4+,
+		// Firefox 91+), a nested <dialog> on its own Escape. Treated as
+		// Escape those dismiss the host, so a descendant's cancel is left
+		// alone: not swallowed, not stopped, and the panel stays open.
 		_.#handlers.cancel = (e) => {
+			if (e.target !== _.#dialog) return;
 			e.preventDefault();
 			e.stopPropagation();
 			_.hide();
